@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Spinner xmlns:android="http://schemas.android.com/apk/res/android"
+
+        android:id="@+id/value_setter"
+        android:layout_width="wrap_content"
+        android:layout_height="@dimen/vsetter_height"
+        android:layout_gravity="fill_horizontal"
+        android:layout_marginTop="5dp"
+        android:layout_marginBottom="5dp"
+        android:dropDownSelector="@color/colorAccent"
+        android:popupBackground="@color/spinnerPopupBackgroundColor"
+        android:spinnerMode="dropdown"
+        android:tag="value_dropdown"
+    />
