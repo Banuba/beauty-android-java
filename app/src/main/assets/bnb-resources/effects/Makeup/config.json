@@ -1,0 +1,15 @@
+{
+  "assets": {
+    "images": {
+      "camera": {
+        "type": "procedural_texture",
+        "algorithm": "camera_composer"
+      }
+    }
+  },
+  "script": {
+    "type": "latest",
+    "entry_point": "config.js"
+  },
+  "scene": "Makeup"
+}
