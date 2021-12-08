@@ -7,136 +7,257 @@ import java.util.List;
 import java.util.Map;
 
 final class ModelDataKeys {
-    static final String MORPH_CHEEKS = "morph_cheeks_str";
-    static final String MORPH_EYES = "morph_eyes_str";
-    static final String MORPH_NOSE = "morph_nose_str";
+    /* Skin */
+    /** Sets the skin softening from 0 to 1 */
+    static final String SKIN_SOFTENING = "makeup.Skin.softening";
+    /** Sets skin color */
+    static final String SKIN_COLOR = "makeup.Skin.color";
 
-    static final String SKIN_SOFT = "skin_soft_str";
-    static final String SOFTLIGHT_ALPHA = "softlight_alpha";
-    static final String SOFTLIGHT_TEX = "softlight_tex";
 
-    static final String EYES_FLARE_ALPHA = "eye_flare_alpha";
-    static final String EYES_COLORING = "eyes_coloring_str";
+    /* Eyes */
+    /** Sets the eyes sclera whitening strength from 0 to 1 */
+    static final String EYES_WHITENING = "makeup.Eyes.whitening";
+    /** Sets the eyes color */
+    static final String EYES_COLOR = "makeup.Eyes.color";
+    /** Sets the eyes flare strength from 0 to 1 */
+    static final String EYES_FLARE = "makeup.Eyes.flare";
 
-    static final String TEETH_WHITENING = "teeth_whitening_str";
 
-    static final String LASHES_TEX = "lashes_tex";
-    static final String LASHES_ALPHA = "lashes_alpha";
+    /* Teeth */
+    /** Sets the teeth whitening strength from 0 to 1 */
+    static final String TEETH_WHITENING = "makeup.Teeth.whitening";
 
-    static final String EYEBROWS_TEX = "eyebrows_tex";
-    static final String EYEBROWS_ALPHA = "eyebrows_alpha";
 
-    static final String FINAL_COLOR_CORRECTION = "final_color_correction_str";
-    static final String FINAL_COLOR_CORRECTION_TEX = "final_color_correction_tex";
+    /* Lips */
+    /** Sets the lips matt color */
+    static final String LIPS_MATT = "makeup.Lips.matt";
+    /** Sets the lips shiny color */
+    static final String LIPS_SHINY = "makeup.Lips.shiny";
+    /** Sets the lips glitter color */
+    static final String LIPS_GLITTER = "makeup.Lips.glitter";
+
+
+    /* Makeup */
+    /** Sets eyeliner color in R G B A format */
+    static final String MAKEUP_EYELINER = "makeup.Makeup.eyeliner";
+    /** Sets eyeshadow color in R G B A format */
+    static final String MAKEUP_EYESHADOW = "makeup.Makeup.eyeshadow";
+    /** Sets lashes color in R G B A format */
+    static final String MAKEUP_LASHES = "makeup.Eyelashes.color";
+    /** Sets highlighter color in R G B A format */
+    static final String MAKEUP_HIGHLIGHTER = "makeup.Makeup.highlighter";
+    /** Sets blushes color in R G B A format */
+    static final String MAKEUP_BLUSHES = "makeup.Makeup.blushes";
+    /** Sets contour color in R G B A format */
+    static final String MAKEUP_CONTOUR = "makeup.Makeup.contour";
+    /** Sets makeup texture */
+    static final String MAKEUP_SET = "makeup.Makeup.set";
+
+
+    /* Eyelashes */
+    /** Sets eyelashes texture */
+    static final String EYELASHES_TEXTURE = "makeup.Eyelashes.texture";
+
+
+    /* Hair */
+    /** Set hair color multiple colors (up to 5 colors) */
+    static final String HAIR_COLOR = "makeup.Hair.color";
+    /** Sets hair strands multiple colors (up to 5 colors) */
+    static final String HAIR_STRANDS = "makeup.Hair.strands";
+
+
+    /* Softlight */
+    /** Sets the softlight strength from 0 to 1 */
+    static final String SOFTLIGHT_STRENGTH = "makeup.Softlight.strength";
+
+
+    /* Filter */
+    /** Sets the filter LUT ("lut_texture.png") */
+    static final String FILTER_SET = "makeup.Filter.set";
+    /** Sets the filter strength from 0 to 1 */
+    static final String FILTER_STRENGTH = "makeup.Filter.strength";
+
+
+    /* FaceMorph */
+    /** Sets eyes grow strength from 0 to 1 */
+    static final String FACE_MORPH_EYES = "makeup.FaceMorph.eyes";
+    /** Sets nose shrink strength from 0 to 1 */
+    static final String FACE_MORPH_NOSE = "makeup.FaceMorph.nose";
+    /** Sets face (cheeks) shrink strength from 0 to 1 */
+    static final String FACE_MORPH_FACE = "makeup.FaceMorph.face";
+
+
+    /* EyeBagsRemoval */
+    /** Sets EyeBagsRemoval to enable */
+    static final String EYE_BAGS_REMOVAL_ENABLE = "makeup.EyeBagsRemoval.enable";
+    /** Sets EyeBagsRemoval to disable */
+    static final String EYE_BAGS_REMOVAL_DISABLE = "makeup.EyeBagsRemoval.disable";
 }
 
 final class VSModel {
     private Map<String, List<ValueSetter>> mModel;
 
-    VSModel(ValueSetterListener valueListener) {
+    VSModel(ModelDataListener valueListener) {
         mModel = new HashMap<String, List<ValueSetter>>() {
             {
                 put("Morph", new ArrayList<ValueSetter>() {
                     {
-                        add(new SeekBarValueSetter(
-                            "Cheeks", ModelDataKeys.MORPH_CHEEKS, valueListener, 2));
-                        add(new SeekBarValueSetter(
-                            "Eyes", ModelDataKeys.MORPH_EYES, valueListener, 2));
-                        add(new SeekBarValueSetter(
-                            "Nose", ModelDataKeys.MORPH_NOSE, valueListener, 2));
+                        add(new SeekBarFloatValueSetter(
+                            "Face", ModelDataKeys.FACE_MORPH_FACE, valueListener));
+                        add(new SeekBarFloatValueSetter(
+                            "Eyes", ModelDataKeys.FACE_MORPH_EYES, valueListener));
+                        add(new SeekBarFloatValueSetter(
+                            "Nose", ModelDataKeys.FACE_MORPH_NOSE, valueListener));
                     }
                 });
                 put("Skin", new ArrayList<ValueSetter>() {
                     {
-                        add(new SeekBarValueSetter(
-                            "Softness", ModelDataKeys.SKIN_SOFT, valueListener, 2));
-                        add(new SeekBarValueSetter(
-                            "Softlight alpha", ModelDataKeys.SOFTLIGHT_ALPHA, valueListener));
-                        add(new SpinnerValueSetter(
-                            "Softlight tex", ModelDataKeys.SOFTLIGHT_TEX, new ArrayList<String>() {
-                                {
-                                    add("Soft"); // soft.ktx
-                                }
-                            }, valueListener));
+                        add(new SeekBarFloatValueSetter(
+                            "Softness", ModelDataKeys.SKIN_SOFTENING, valueListener));
+                        add(new SeekBarRgbaValueSetter(
+                            "Color", ModelDataKeys.SKIN_COLOR, valueListener));
                     }
                 });
                 put("Eyes", new ArrayList<ValueSetter>() {
                     {
-                        add(new SeekBarValueSetter(
-                            "Flare alpha", ModelDataKeys.EYES_FLARE_ALPHA, valueListener));
-                        add(new SeekBarValueSetter(
-                            "Coloring", ModelDataKeys.EYES_COLORING, valueListener));
+                        add(new SeekBarFloatValueSetter(
+                            "Whitening", ModelDataKeys.EYES_WHITENING, valueListener));
+                        add(new SeekBarRgbaValueSetter(
+                            "Color", ModelDataKeys.EYES_COLOR, valueListener));
+                        add(new SeekBarFloatValueSetter(
+                            "Flare", ModelDataKeys.EYES_FLARE, valueListener));
                     }
                 });
+
+                put("Makeup eyeliner", new ArrayList<ValueSetter>() {
+                    {
+                        add(new SeekBarRgbaValueSetter(
+                            "Color", ModelDataKeys.MAKEUP_EYELINER, valueListener));
+                        add(new LoadImageButtonValueSetter(
+                                "Load eyeliner image", ModelDataKeys.MAKEUP_EYELINER, valueListener));
+                    }
+                });
+                put("Makeup eyeshadow", new ArrayList<ValueSetter>() {
+                    {
+                        add(new SeekBarRgbaValueSetter(
+                            "Color", ModelDataKeys.MAKEUP_EYESHADOW, valueListener));
+                        add(new LoadImageButtonValueSetter(
+                            "Load eyeshadow image", ModelDataKeys.MAKEUP_EYESHADOW, valueListener));
+                    }
+                });
+                put("Makeup texture", new ArrayList<ValueSetter>() {
+                    {
+                        add(new LoadImageButtonValueSetter(
+                            "Load makeup image", ModelDataKeys.MAKEUP_SET, valueListener));
+                    }
+                });
+                put("Makeup lashes", new ArrayList<ValueSetter>() {
+                    {
+                        add(new SeekBarRgbaValueSetter(
+                            "Color", ModelDataKeys.MAKEUP_LASHES, valueListener));
+                        add( new LoadImageButtonValueSetter(
+                            "Load lashes image", ModelDataKeys.EYELASHES_TEXTURE, valueListener));
+                    }
+                });
+                put("Makeup highlighter", new ArrayList<ValueSetter>() {
+                    {
+                        add(new SeekBarRgbaValueSetter(
+                            "Color", ModelDataKeys.MAKEUP_HIGHLIGHTER, valueListener));
+                        add(new LoadImageButtonValueSetter(
+                                "Load highlighter image", ModelDataKeys.MAKEUP_HIGHLIGHTER, valueListener));
+                    }
+                });
+                put("Makeup blushes", new ArrayList<ValueSetter>() {
+                    {
+                        add(new SeekBarRgbaValueSetter(
+                            "Color", ModelDataKeys.MAKEUP_BLUSHES, valueListener));
+                        add(new LoadImageButtonValueSetter(
+                            "Load blushes image", ModelDataKeys.MAKEUP_BLUSHES, valueListener));
+                    }
+                });
+                put("Makeup contour", new ArrayList<ValueSetter>() {
+                    {
+                        add(new SeekBarRgbaValueSetter(
+                            "Color", ModelDataKeys.MAKEUP_CONTOUR, valueListener));
+                        add(new LoadImageButtonValueSetter(
+                            "Load contour image", ModelDataKeys.MAKEUP_CONTOUR, valueListener));
+                    }
+                });
+
+                put("lips matt", new ArrayList<ValueSetter>() {
+                    {
+                        add(new SeekBarRgbaValueSetter(
+                            "Color", ModelDataKeys.LIPS_MATT, valueListener));
+                    }
+                });
+                put("lips shiny", new ArrayList<ValueSetter>() {
+                    {
+                        add(new SeekBarRgbaValueSetter(
+                            "Color", ModelDataKeys.LIPS_SHINY, valueListener));
+                    }
+                });
+                put("lips glitter", new ArrayList<ValueSetter>() {
+                    {
+                        add(new SeekBarRgbaValueSetter(
+                            "Color", ModelDataKeys.LIPS_GLITTER, valueListener));
+                    }
+                });
+
+                put("Hair color", new ArrayList<ValueSetter>() {
+                    {
+                        add(new SeekBarRgbaValueSetter(
+                                "Color gradient", ModelDataKeys.HAIR_COLOR, valueListener, 0));
+                        add(new SeekBarRgbaValueSetter(
+                                null, ModelDataKeys.HAIR_COLOR, valueListener, 1));
+                        add(new SeekBarRgbaValueSetter(
+                                null, ModelDataKeys.HAIR_COLOR, valueListener, 2));
+                        add(new SeekBarRgbaValueSetter(
+                                null, ModelDataKeys.HAIR_COLOR, valueListener, 3));
+                        add(new SeekBarRgbaValueSetter(
+                                null, ModelDataKeys.HAIR_COLOR, valueListener, 4));
+                    }
+                });
+                put("Hair strands", new ArrayList<ValueSetter>() {
+                    {
+                        add(new SeekBarRgbaValueSetter(
+                                "Color gradient", ModelDataKeys.HAIR_STRANDS, valueListener, 0));
+                        add(new SeekBarRgbaValueSetter(
+                                null, ModelDataKeys.HAIR_STRANDS, valueListener, 1));
+                        add(new SeekBarRgbaValueSetter(
+                                null, ModelDataKeys.HAIR_STRANDS, valueListener, 2));
+                        add(new SeekBarRgbaValueSetter(
+                                null, ModelDataKeys.HAIR_STRANDS, valueListener, 3));
+                        add(new SeekBarRgbaValueSetter(
+                                null, ModelDataKeys.HAIR_STRANDS, valueListener, 4));
+                    }
+                });
+
                 put("Teeth", new ArrayList<ValueSetter>() {
                     {
-                        add(new SeekBarValueSetter(
+                        add(new SeekBarFloatValueSetter(
                             "Whitening", ModelDataKeys.TEETH_WHITENING, valueListener));
                     }
                 });
-                put("Lashes", new ArrayList<ValueSetter>() {
+                put("Softlight", new ArrayList<ValueSetter>() {
                     {
-                        add(new SeekBarValueSetter(
-                            "Alpha", ModelDataKeys.LASHES_ALPHA, valueListener, 2));
-                        add(new SpinnerValueSetter(
-                            "Texture", ModelDataKeys.LASHES_TEX, new ArrayList<String>() {
-                                {
-                                    add("Lashes 1"); // lashes1.ktx
-                                    add("Lashes 2");
-                                    add("Lashes 3");
-                                    add("Lashes 4");
-                                    add("Lashes 5");
-                                    add("Lashes 6");
-                                    add("Lashes 7");
-                                    add("Lashes 8");
-                                    add("Lashes 9");
-                                    add("Lashes 10");
-                                    add("Lashes 11");
-                                    add("Lashes 12");
-                                }
-                            }, valueListener));
+                        add(new SeekBarFloatValueSetter(
+                            "Softlight", ModelDataKeys.SOFTLIGHT_STRENGTH, valueListener));
                     }
                 });
-                put("Eye brows", new ArrayList<ValueSetter>() {
+                put("Filter", new ArrayList<ValueSetter>() {
                     {
-                        add(new SeekBarValueSetter(
-                            "Alpha", ModelDataKeys.EYEBROWS_ALPHA, valueListener, 2));
-                        add(new SpinnerValueSetter(
-                            "Texture", ModelDataKeys.EYEBROWS_TEX, new ArrayList<String>() {
-                                {
-                                    add("Neutral"); // brows_512.ktx
-                                    add("Hi");      // brows_Hi_512.ktx
-                                }
-                            }, valueListener));
+                        add(new SeekBarFloatValueSetter(
+                            "Strength", ModelDataKeys.FILTER_STRENGTH, valueListener));
+                        add( new LoadImageButtonValueSetter(
+                            "Load an image", ModelDataKeys.FILTER_SET, valueListener));
+
                     }
                 });
-                put("Color correction", new ArrayList<ValueSetter>() {
+                put("Eye bags", new ArrayList<ValueSetter>() {
                     {
-                        add(new SeekBarValueSetter(
-                            "Intensity", ModelDataKeys.FINAL_COLOR_CORRECTION, valueListener));
-                        add(new SpinnerValueSetter(
-                            "Texture",
-                            ModelDataKeys.FINAL_COLOR_CORRECTION_TEX,
-                            new ArrayList<String>() {
-                                {
-                                    add("Barbie");    // lut3d_barbie.png
-                                    add("BWC");       // lut3d_bwc.png
-                                    add("Columbia");  // lut3d_columbia.png
-                                    add("Egg");       // lut3d_egg.png
-                                    add("LimonTea");  // lut3d_limontea.png
-                                    add("Milano");    // lut3d_milano.png
-                                    add("Nash");      // lut3d_nash.png
-                                    add("Pink vine"); // lut3d_pinkvine.png
-                                    add("Pirate");    // lut3d_pirate.png
-                                    add("Spark");     // lut3d_spark.png
-                                    add("Spring");    // lut3d_spring.png
-                                    add("Sunny");     // lut3d_sunny.png
-                                    add("Vinyl");     // lut3d_vinyl.png
-                                    add("Violla");    // lut3d_violla.png
-                                    add("Yury");      // lut3d_yury.png
-                                }
-                            },
-                            valueListener));
+                        add(new SwitchValueSetter(
+                            "Eye bags remove", ModelDataKeys.EYE_BAGS_REMOVAL_ENABLE,
+                            ModelDataKeys.EYE_BAGS_REMOVAL_DISABLE, valueListener));
                     }
                 });
             }

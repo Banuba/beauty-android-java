@@ -6,8 +6,6 @@ import android.widget.Spinner;
 
 import com.banuba.sdk.example.beautification.effects.beauty.BeautyController;
 import com.banuba.sdk.example.beautification.effects.beauty.ModelDataListener;
-import com.banuba.sdk.example.beautification.effects.color.ColorController;
-import com.banuba.sdk.example.beautification.effects.color.ColorValueListener;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -26,20 +24,12 @@ public class EffectController {
     public EffectController(
         RecyclerView selectorView,
         ViewGroup valuesView,
-        Spinner presetsSelector,
-        ModelDataListener modelDataListener,
-        ColorValueListener colorValueListener) {
-        BeautyController beauty =
-            new BeautyController(selectorView, valuesView, presetsSelector, modelDataListener);
-        ColorController color = new ColorController(valuesView, colorValueListener);
+        ModelDataListener modelDataListener) {
 
+        BeautyController makeup = new BeautyController(selectorView, valuesView, modelDataListener);
         mEffectViews = new HashMap<String, EffectValuesView>() {
             {
-                put("Beauty_base", beauty);
-                put("test_Eyes", color);
-                put("test_Hair", color);
-                put("test_Lips", color);
-                put("test_Skin", color);
+                put("Makeup", makeup);
             }
         };
     }

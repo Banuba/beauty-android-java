@@ -8,50 +8,52 @@ import androidx.annotation.NonNull;
 import androidx.core.app.ActivityCompat;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.RecyclerView;
-import android.util.Log;
+
 import android.view.SurfaceView;
-import android.view.View;
 import android.view.ViewGroup;
-import android.widget.AdapterView;
-import android.widget.ArrayAdapter;
-import android.widget.Spinner;
-import android.widget.TextView;
 import android.widget.Toast;
 
 import com.banuba.sdk.example.beautification.effects.EffectController;
 import com.banuba.sdk.example.beautification.effects.beauty.ModelDataListener;
-import com.banuba.sdk.example.beautification.effects.color.ColorValueListener;
 import com.banuba.sdk.effect_player.Effect;
 import com.banuba.sdk.manager.BanubaSdkManager;
 
-import org.json.JSONArray;
-import org.json.JSONObject;
-
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 
-public class MainActivity extends AppCompatActivity
-    implements ModelDataListener, AdapterView.OnItemSelectedListener, ColorValueListener {
+class MyColor {
+    public float r;
+    public float g;
+    public float b;
+    public float a;
+    public boolean used;
+
+    public MyColor() {
+        set(0.0f, 0.0f, 0.0f, 0.0f);
+    }
+
+    public MyColor(float r, float g, float b, float a) {
+        set(r, g, b, a);
+    }
+
+    public void set(float r, float g, float b, float a) {
+        this.r = r;
+        this.g = g;
+        this.b = b;
+        this.a = a;
+        used = a > 0.01f;
+    }
+}
+
+public class MainActivity extends AppCompatActivity implements ModelDataListener {
     private static final int REQUEST_CODE_CAMERA_PERMISSION = 10072;
     private static final int REQUEST_WRITE_STORAGE_PERMISSION = 112;
 
-    private static final Map<String, String> mEffects = new HashMap<String, String>() {
-        {
-            put("Beauty", "Beauty_base");
-            put("Eyes", "test_Eyes");
-            put("Hair", "test_Hair");
-            put("Lips", "test_Lips");
-            put("Skin", "test_Skin");
-        }
-    };
-
     private EffectController mEffectController = null;
-    private BanubaSdkManager mSdkManager;
+    private BanubaSdkManager mSdkManager = null;
     private Effect mCurrentEffect;
+
+    private HashMap<String, MyColor[]> mHairColorMap;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -62,18 +64,6 @@ public class MainActivity extends AppCompatActivity
 
         setContentView(R.layout.activity_main);
 
-        List<String> sortedEffectNames = new ArrayList<>(mEffects.keySet());
-        Collections.sort(sortedEffectNames);
-
-        ArrayAdapter<String> effectSpinnerAdapter =
-            new ArrayAdapter<>(this, R.layout.effect_spinner_dropdown_item, sortedEffectNames);
-
-        final Spinner effect_spinner = findViewById(R.id.effect_selector);
-        effect_spinner.setAdapter(effectSpinnerAdapter);
-        effect_spinner.setOnItemSelectedListener(this);
-
-        final Spinner presets_selector = findViewById(R.id.beauty_presets_selector);
-
         final SurfaceView sv = findViewById(R.id.effect_view);
 
         BanubaSdkManager.initialize(this, BanubaClientToken.KEY);
@@ -82,8 +72,9 @@ public class MainActivity extends AppCompatActivity
 
         final RecyclerView effectItemView = findViewById(R.id.effect_selector_view);
         final ViewGroup effectValuesView = findViewById(R.id.effect_parameters_view);
-        mEffectController =
-            new EffectController(effectItemView, effectValuesView, presets_selector, this, this);
+        mEffectController = new EffectController(effectItemView, effectValuesView, this);
+
+        loadEffect("Makeup");
     }
 
     private boolean isCameraPermissionGranted() {
@@ -143,10 +134,60 @@ public class MainActivity extends AppCompatActivity
     }
 
     @Override
-    public void onModelDataChanged(Map<String, String> values) {
-        String json = new JSONObject(values).toString();
-        Log.d("beauty json", json);
-        mCurrentEffect.callJsMethod("onDataUpdate", json);
+    public void onSetterLoadImage(String key, String path) {
+        mCurrentEffect.evalJs(makeJsMethod(key, "'" + path + "'"), null);
+    }
+
+    @Override
+    public void onSetterEvent(String key) {
+        mCurrentEffect.evalJs(makeJsMethod(key, null), null);
+    }
+
+    @Override
+    public void onSetterFloatValueChanged(String key, float value) {
+        String s = "'" + value + "'";
+        mCurrentEffect.evalJs(makeJsMethod(key, s), null);
+    }
+
+    @Override
+    public void onSetterRgbaValueChanged(String key, float r, float g, float b, float a) {
+        String s = "'" + r + " " + g + " " + b + " " + a + "'";
+        mCurrentEffect.evalJs(makeJsMethod(key, s), null);
+    }
+
+    @Override
+    public void onSetterRgbaMultipleColorsValueChanged(String key, float r, float g, float b, float a, int index) {
+        if (index < 0 || index > 4) {
+            throw new IllegalArgumentException("Invalid index: " + index);
+        }
+
+        if (mHairColorMap == null) {
+            mHairColorMap = new HashMap<String, MyColor[]>();
+        }
+
+        if (!mHairColorMap.containsKey(key)) {
+            mHairColorMap.put(key, new MyColor[] {
+                new MyColor(), new MyColor(), new MyColor(), new MyColor(), new MyColor()
+            });
+        }
+
+        MyColor[] colors = mHairColorMap.get(key);
+        colors[index].set(r, g, b, a);
+
+        String valArray = "";
+        int clNum = 0;
+        for (MyColor cl: colors) {
+            if (cl.used) {
+                if (!valArray.isEmpty()) {
+                    valArray += ", ";
+                }
+                valArray += "\'" + cl.r + " " + cl.g + " " + cl.b + " " + cl.a + "\'";
+                clNum++;
+            }
+        }
+
+        String val = clNum == 0 ? "0.0 0.0 0.0 0.0" : (clNum == 1 ? valArray : "[" + valArray + "]");
+        mCurrentEffect.evalJs(makeJsMethod(key, val), null);
     }
 
     @Override
@@ -176,44 +217,18 @@ public class MainActivity extends AppCompatActivity
     @Override
     protected void onDestroy() {
         mCurrentEffect = null;
-        mSdkManager.releaseSurface();
+        if (mSdkManager != null) {
+            mSdkManager.releaseSurface();
+        }
         super.onDestroy();
     }
 
-    @Override
-    public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
-        String selected = (String) ((TextView) view).getText();
-        loadEffect(mEffects.get(selected));
+    private String makeJsMethod(String method, String params) {
+        return method + (params == null ? "()" : "(" + params + ")");
     }
 
     private void loadEffect(String effect) {
         mCurrentEffect = mSdkManager.loadEffect(BanubaSdkManager.getResourcesBase() + "/effects/" + effect, false);
         mEffectController.onEffectChanged(effect);
-    }
-
-    @Override
-    public void onNothingSelected(AdapterView<?> adapterView) {
-    }
-
-    @Override
-    public void onColorChanged(int argb) {
-        Log.d("color json", "ARGB color: " + String.format("%08X", argb));
-
-        // clang-format off
-        int a = (argb >> 24) & (0x000000FF);
-        int r = (argb >> 16) & (0x000000FF);
-        int g = (argb >> 8) & (0x000000FF);
-        int b = argb & (0x000000FF);
-        // clang-format on
-
-        List<Float> color_arr = new ArrayList<>(4);
-        color_arr.add((float) r / 0xFF);
-        color_arr.add((float) g / 0xFF);
-        color_arr.add((float) b / 0xFF);
-        color_arr.add((float) a / 0xFF);
-
-        String json = new JSONArray(color_arr).toString();
-        Log.d("color json", "json: " + json);
-        mCurrentEffect.callJsMethod("setColor", json);
     }
 }
