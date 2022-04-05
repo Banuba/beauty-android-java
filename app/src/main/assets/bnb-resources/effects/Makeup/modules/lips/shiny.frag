@@ -30,10 +30,10 @@ vec3 lipstik(vec3 bg)
 {
     vec4 js_lips_color = vec4(var_lips_color);
     vec4 js_lips_shine = vec4(
-        var_lips_saturation.x,
-        var_lips_shine_intensity.x,
-        var_lips_shine_bleeding.x,
-        var_lips_brightness.x);
+        var_lips_saturation_brightness.x,
+        var_lips_shine_intensity_bleeding_scale.x,
+        var_lips_shine_intensity_bleeding_scale.y,
+        var_lips_saturation_brightness.y);
 
     float sCoef = js_lips_shine.x;
 
@@ -57,15 +57,15 @@ void main()
 {
     vec4 js_lips_color = vec4(var_lips_color);
     vec4 js_lips_shine = vec4(
-        var_lips_saturation.x,
-        var_lips_shine_intensity.x,
-        var_lips_shine_bleeding.x,
-        var_lips_brightness.x);
+        var_lips_saturation_brightness.x,
+        var_lips_shine_intensity_bleeding_scale.x,
+        var_lips_shine_intensity_bleeding_scale.y,
+        var_lips_saturation_brightness.y);
     vec4 js_lips_glitter = vec4(
-        var_lips_glitter_bleeding.x,
-        var_lips_glitter_intensity.x,
-        var_lips_glitter_grain.x,
-        var_lips_shine_scale.x);
+        var_lips_glitter_bleeding_intensity_grain.x,
+        var_lips_glitter_bleeding_intensity_grain.y,
+        var_lips_glitter_bleeding_intensity_grain.z,
+        var_lips_shine_intensity_bleeding_scale.z);
 
     float nUVScale = bnb_SCREEN.y / (js_lips_glitter.z * 256.);
     vec4 noise = BNB_TEXTURE_2D(BNB_SAMPLER_2D(tex_noise), var_uv.zw * nUVScale) * 2. - 1.;
@@ -73,11 +73,15 @@ void main()
     vec4 maskColor = bnb_texture_bicubic(BNB_PASS_SAMPLER_ARGUMENT(tex_lips_mask), var_uv.zw);
     float maskAlpha = maskColor.x;
 
+    vec2 uv = var_uv.xy;
+#ifdef BNB_VK_1
+    uv.y = 1. - uv.y;
+#endif
 
-    vec3 bg = BNB_TEXTURE_2D(BNB_SAMPLER_2D(tex_camera), var_uv.xy).xyz;
+    vec3 bg = BNB_TEXTURE_2D(BNB_SAMPLER_2D(tex_camera), uv.xy).xyz;
 
     float nCoeff = js_lips_glitter.x * 0.0025;
-    vec3 bg_noised = BNB_TEXTURE_2D(BNB_SAMPLER_2D(tex_camera), var_uv.xy + noise.xy * nCoeff).xyz;
+    vec3 bg_noised = BNB_TEXTURE_2D(BNB_SAMPLER_2D(tex_camera), uv.xy + noise.xy * nCoeff).xyz;
 
     // Lipstick
     vec3 color_lipstick = lipstik(bg);

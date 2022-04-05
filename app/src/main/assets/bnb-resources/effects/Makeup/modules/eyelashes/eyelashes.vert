@@ -1,6 +1,6 @@
 #include <bnb/glsl.vert>
 
-#define MORPH_MULTIPLIER 1.3f
+#define MORPH_MULTIPLIER 1.3
 
 BNB_LAYOUT_LOCATION(0)
 BNB_IN vec3 attrib_pos;
@@ -41,6 +41,48 @@ vec2 var_uv;
 #define BNB_USE_AUTOMORPH
 #include <bnb/morph_transform.glsl>
 
+#ifdef BNB_GL_ES_1
+    #include <bnb/matrix_operations.glsl>
+mat4 get_bone(float b, float db)
+{
+    mat4 m = transpose(mat4(
+        BNB_TEXTURE_2D(BNB_SAMPLER_2D(bnb_BONES), vec2(b, 0.)),
+        BNB_TEXTURE_2D(BNB_SAMPLER_2D(bnb_BONES), vec2(b + db, 0.)),
+        BNB_TEXTURE_2D(BNB_SAMPLER_2D(bnb_BONES), vec2(b + 2. * db, 0.)),
+        vec4(0., 0., 0., 1.)));
+
+    vec2 morph_uv = bnb_morph_coord(m[3].xyz) * 0.5 + 0.5;
+    vec3 translation = BNB_TEXTURE_2D(BNB_SAMPLER_2D(bnb_MORPH), morph_uv).xyz;
+    m[3].xyz += translation * MORPH_MULTIPLIER;
+
+    mat4 ibp = transpose(mat4(
+        BNB_TEXTURE_2D(BNB_SAMPLER_2D(bnb_BONES), vec2(b, 1.)),
+        BNB_TEXTURE_2D(BNB_SAMPLER_2D(bnb_BONES), vec2(b + db, 1.)),
+        BNB_TEXTURE_2D(BNB_SAMPLER_2D(bnb_BONES), vec2(b + 2. * db, 1.)),
+        vec4(0., 0., 0., 1.)));
+
+    return m * ibp;
+}
+
+mat4 get_transform()
+{
+    float db = 1. / (bnb_ANIM.z * 3.);
+    mat4 m = get_bone((float(attrib_bones[0]) * 3. + 0.5) * db, db);
+    if (attrib_weights[1] > 0.) {
+        m = m * attrib_weights[0]
+            + get_bone((float(attrib_bones[1]) * 3. + 0.5) * db, db) * attrib_weights[1];
+
+        if (attrib_weights[2] > 0.) {
+            m += get_bone((float(attrib_bones[2]) * 3. + 0.5) * db, db) * attrib_weights[2];
+
+            if (attrib_weights[3] > 0.) {
+                m += get_bone((float(attrib_bones[3]) * 3. + 0.5) * db, db) * attrib_weights[3];
+            }
+        }
+    }
+    return m;
+}
+#else
 mat4 get_bone(uint bone_idx)
 {
     int b = int(bone_idx) * 3;
@@ -51,9 +93,9 @@ mat4 get_bone(uint bone_idx)
         vec4(0., 0., 0., 1.)));
 
     vec2 morph_uv = bnb_morph_coord(m[3].xyz) * 0.5 + 0.5;
-#ifdef BNB_VK_1
+    #ifdef BNB_VK_1
     morph_uv.y = 1. - morph_uv.y;
-#endif
+    #endif
     vec3 translation = BNB_TEXTURE_2D(BNB_SAMPLER_2D(bnb_MORPH), morph_uv).xyz;
     m[3].xyz += translation * MORPH_MULTIPLIER;
 
@@ -79,6 +121,7 @@ mat4 get_transform()
     }
     return m;
 }
+#endif
 
 void main()
 {

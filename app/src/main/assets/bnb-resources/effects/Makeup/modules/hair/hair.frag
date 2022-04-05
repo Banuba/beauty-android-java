@@ -1,6 +1,6 @@
 #include <bnb/glsl.frag>
-#include <bnb/color_spaces.glsl>
 #include "filtered_mask.glsl"
+#include "yuv.glsl"
 
 BNB_IN(0)
 vec2 var_uv;
@@ -13,7 +13,6 @@ BNB_DECLARE_SAMPLER_2D(0, 1, tex_camera);
 BNB_DECLARE_SAMPLER_2D(2, 3, tex_hair_mask);
 BNB_DECLARE_SAMPLER_2D(4, 5, tex_gradient_mask);
 BNB_DECLARE_SAMPLER_2D(6, 7, tex_strands_mask);
-BNB_DECLARE_SAMPLER_2D(8, 9, tex_avg_color);
 
 /*
     in hair_strand mode
@@ -54,52 +53,37 @@ vec4 hair_color_linear(float x)
     return mix(color1, color2, ratio);
 }
 
-vec4 color(vec4 base, vec4 avg_color, vec4 target)
+
+vec4 color(vec4 base, vec4 target, float alpha)
 {
-    vec3 base_LCh = bnb_rgb_to_LCh(base.rgb);
-    vec3 avg_LCh = bnb_rgb_to_LCh(avg_color.rgb);
-    vec3 target_LCh = bnb_rgb_to_LCh(target.rgb);
+    const float beta = 0.5;
 
-    float d = base_LCh.x - avg_LCh.x;
-    float c = target_LCh.x / avg_LCh.x;
+    vec3 pixel1 = rgb2yuv(base.rgb);
+    vec3 yuv1 = rgb2yuv(target.rgb);
 
-    /* Poor man's solution to increase contrast of "dark to light" coloring */
-    c = d > 0. // kepp shine as is
-            ? c
-            : c < 1. // keep shadows as is for "light to dark" recolor
-                  ? c
-                  : pow(c, 1.618); // increase shadows for "dark to lingh" coloring
+    pixel1[1] = mix(pixel1[1], mix(pixel1[1], yuv1[1], beta), alpha);
+    pixel1[2] = mix(pixel1[2], mix(pixel1[2], yuv1[2], beta), alpha);
 
-    float dL = d * c;
-
-    vec3 res_LCh = vec3(
-        target_LCh.x + dL,
-        target_LCh.y,
-        target_LCh.z);
-
-    vec3 res_rgb = bnb_LCh_to_rgb(res_LCh);
-
-    vec3 colored = mix(base.rgb, res_rgb, target.a);
-
-    return vec4(colored, base.a);
+    return vec4(yuv2rgb(pixel1), target.a);
 }
 
 void main()
 {
+    float var_hair_colors_count = var_hair_colors_count_mode.x;
+    float var_hair_coloring_mode = var_hair_colors_count_mode.y;
     float mask = hair_mask(BNB_PASS_SAMPLER_ARGUMENT(tex_hair_mask), var_hair_mask_uv);
     vec4 camera = BNB_TEXTURE_2D(BNB_SAMPLER_2D(tex_camera), var_uv);
-    vec4 avg_color = BNB_TEXTURE_2D(BNB_SAMPLER_2D(tex_avg_color), var_uv);
 
     float target_color_idx = 0.;
 
-    if (var_hair_coloring_mode.x == 1.)
-        target_color_idx = gradient_mask(BNB_PASS_SAMPLER_ARGUMENT(tex_gradient_mask), var_uv, var_hair_colors_count.x);
-    if (var_hair_coloring_mode.x == 2.)
+    if (var_hair_coloring_mode == 1.)
+        target_color_idx = gradient_mask(BNB_PASS_SAMPLER_ARGUMENT(tex_gradient_mask), var_uv, var_hair_colors_count);
+    if (var_hair_coloring_mode == 2.)
         target_color_idx = strands_mask(BNB_PASS_SAMPLER_ARGUMENT(tex_strands_mask), var_strands_mask_uv);
 
     vec4 target_color = hair_color_linear(target_color_idx);
 
-    vec4 colored = color(camera, avg_color, target_color);
+    vec4 colored = color(camera, target_color, mask);
 
-    bnb_FragColor = vec4(colored.rgb, mask);
+    bnb_FragColor = vec4(colored.rgb, colored.a * mask);
 }
