@@ -3,8 +3,8 @@ buildscript {
     repositories {
         google()
         jcenter()
-        
     }
+
     dependencies {
         classpath 'com.android.tools.build:gradle:4.0.0'
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
@@ -16,7 +16,16 @@ allprojects {
         google()
         jcenter()
         mavenCentral()
+
         maven { url "https://jitpack.io" }
+        maven {
+            name "GitHubPackages"
+            url "https://maven.pkg.github.com/sdk-banuba/banuba-sdk-android"
+            credentials {
+                username = "sdk-banuba"
+                password = ""
+            }
+        }
     }
 }
 
