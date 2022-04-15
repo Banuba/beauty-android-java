@@ -26,6 +26,11 @@ vec3 rgb2hsv(in vec3 c)
     return vec3(abs(q.z + (q.w - q.y) / (6.0 * d + eps)), d / (q.x + eps), q.x);
 }
 
+float rgb_v(vec3 rgb)
+{
+    return max(rgb.r, max(rgb.g, rgb.b));
+}
+
 vec3 lipstik(vec3 bg)
 {
     vec4 js_lips_color = vec4(var_lips_color);
@@ -56,6 +61,11 @@ vec3 lipstik(vec3 bg)
 void main()
 {
     vec4 js_lips_color = vec4(var_lips_color);
+
+    float js_color_v = rgb_v(js_lips_color.rgb);
+    const float v_norm = 1. / 0.85;
+    float v_scale = js_color_v * v_norm;
+
     vec4 js_lips_shine = vec4(
         var_lips_saturation_brightness.x,
         var_lips_shine_intensity_bleeding_scale.x,
@@ -90,7 +100,7 @@ void main()
 
     float vCoef = js_lips_shine.y;
     float sCoef1 = js_lips_shine.z;
-    float bCoef = js_lips_shine.w;
+    float bCoef = js_lips_shine.w * v_scale;
     float a = 20.;
     float b = .75;
 

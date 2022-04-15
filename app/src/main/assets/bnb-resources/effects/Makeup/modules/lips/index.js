@@ -79,8 +79,8 @@ class Lips {
                 return;
             }
             this._matt.material.uniforms.tex_lips_mask.enable();
-            const isShineEnabled = shine.some((v) => v !== 0);
-            const isGlitterEnabled = glitter.some((v) => v !== 0);
+            const isShineEnabled = shine[0] !== 0 || shine[1] !== 0 || shine[2] !== 0;
+            const isGlitterEnabled = glitter[0] !== 0 || glitter[1] !== 0 || glitter[2] !== 0;
             if (isShineEnabled || isGlitterEnabled) {
                 this._matt.visible(false);
                 this._shiny.material.uniforms.tex_shine_mask.enable();
