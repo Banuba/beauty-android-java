@@ -9,89 +9,82 @@ import java.util.Map;
 final class ModelDataKeys {
     /* Skin */
     /** Sets the skin softening from 0 to 1 */
-    static final String SKIN_SOFTENING = "makeup.Skin.softening";
+    static final String SKIN_SOFTENING = "Skin.softening";
     /** Sets skin color */
-    static final String SKIN_COLOR = "makeup.Skin.color";
+    static final String SKIN_COLOR = "Skin.color";
 
 
     /* Eyes */
     /** Sets the eyes sclera whitening strength from 0 to 1 */
-    static final String EYES_WHITENING = "makeup.Eyes.whitening";
+    static final String EYES_WHITENING = "Eyes.whitening";
     /** Sets the eyes color */
-    static final String EYES_COLOR = "makeup.Eyes.color";
+    static final String EYES_COLOR = "Eyes.color";
     /** Sets the eyes flare strength from 0 to 1 */
-    static final String EYES_FLARE = "makeup.Eyes.flare";
+    static final String EYES_FLARE = "Eyes.flare";
 
 
     /* Teeth */
     /** Sets the teeth whitening strength from 0 to 1 */
-    static final String TEETH_WHITENING = "makeup.Teeth.whitening";
+    static final String TEETH_WHITENING = "Teeth.whitening";
 
 
     /* Lips */
     /** Sets the lips matt color */
-    static final String LIPS_MATT = "makeup.Lips.matt";
+    static final String LIPS_MATT = "Lips.matt";
     /** Sets the lips shiny color */
-    static final String LIPS_SHINY = "makeup.Lips.shiny";
+    static final String LIPS_SHINY = "Lips.shiny";
     /** Sets the lips glitter color */
-    static final String LIPS_GLITTER = "makeup.Lips.glitter";
+    static final String LIPS_GLITTER = "Lips.glitter";
 
 
     /* Makeup */
     /** Sets eyeliner color in R G B A format */
-    static final String MAKEUP_EYELINER = "makeup.Makeup.eyeliner";
+    static final String MAKEUP_EYELINER = "Makeup.eyeliner";
     /** Sets eyeshadow color in R G B A format */
-    static final String MAKEUP_EYESHADOW = "makeup.Makeup.eyeshadow";
+    static final String MAKEUP_EYESHADOW = "Makeup.eyeshadow";
     /** Sets lashes color in R G B A format */
-    static final String MAKEUP_LASHES = "makeup.Eyelashes.color";
+    static final String MAKEUP_LASHES = "Eyelashes.color";
     /** Sets highlighter color in R G B A format */
-    static final String MAKEUP_HIGHLIGHTER = "makeup.Makeup.highlighter";
+    static final String MAKEUP_HIGHLIGHTER = "Makeup.highlighter";
     /** Sets blushes color in R G B A format */
-    static final String MAKEUP_BLUSHES = "makeup.Makeup.blushes";
+    static final String MAKEUP_BLUSHES = "Makeup.blushes";
     /** Sets contour color in R G B A format */
-    static final String MAKEUP_CONTOUR = "makeup.Makeup.contour";
+    static final String MAKEUP_CONTOUR = "Makeup.contour";
     /** Sets makeup texture */
-    static final String MAKEUP_SET = "makeup.Makeup.set";
+    static final String MAKEUP_SET = "Makeup.set";
 
 
     /* Eyelashes */
     /** Sets eyelashes texture */
-    static final String EYELASHES_TEXTURE = "makeup.Eyelashes.texture";
+    static final String EYELASHES_TEXTURE = "Eyelashes.texture";
 
 
     /* Hair */
-    /** Set hair color multiple colors (up to 5 colors) */
-    static final String HAIR_COLOR = "makeup.Hair.color";
+    /** Set hair color multiple colors (single color) */
+    static final String HAIR_COLOR = "Hair.color";
     /** Sets hair strands multiple colors (up to 5 colors) */
-    static final String HAIR_STRANDS = "makeup.Hair.strands";
+    static final String HAIR_STRANDS = "Hair.strands";
 
 
     /* Softlight */
     /** Sets the softlight strength from 0 to 1 */
-    static final String SOFTLIGHT_STRENGTH = "makeup.Softlight.strength";
+    static final String SOFTLIGHT_STRENGTH = "Softlight.strength";
 
 
     /* Filter */
     /** Sets the filter LUT ("lut_texture.png") */
-    static final String FILTER_SET = "makeup.Filter.set";
+    static final String FILTER_SET = "Filter.set";
     /** Sets the filter strength from 0 to 1 */
-    static final String FILTER_STRENGTH = "makeup.Filter.strength";
+    static final String FILTER_STRENGTH = "Filter.strength";
 
 
     /* FaceMorph */
     /** Sets eyes grow strength from 0 to 1 */
-    static final String FACE_MORPH_EYES = "makeup.FaceMorph.eyes";
+    static final String FACE_MORPH_EYES = "FaceMorph.eyes";
     /** Sets nose shrink strength from 0 to 1 */
-    static final String FACE_MORPH_NOSE = "makeup.FaceMorph.nose";
+    static final String FACE_MORPH_NOSE = "FaceMorph.nose";
     /** Sets face (cheeks) shrink strength from 0 to 1 */
-    static final String FACE_MORPH_FACE = "makeup.FaceMorph.face";
-
-
-    /* EyeBagsRemoval */
-    /** Sets EyeBagsRemoval to enable */
-    static final String EYE_BAGS_REMOVAL_ENABLE = "makeup.EyeBagsRemoval.enable";
-    /** Sets EyeBagsRemoval to disable */
-    static final String EYE_BAGS_REMOVAL_DISABLE = "makeup.EyeBagsRemoval.disable";
+    static final String FACE_MORPH_FACE = "FaceMorph.face";
 }
 
 final class VSModel {
@@ -206,15 +199,7 @@ final class VSModel {
                 put("Hair color", new ArrayList<ValueSetter>() {
                     {
                         add(new SeekBarRgbaValueSetter(
-                                "Color gradient", ModelDataKeys.HAIR_COLOR, valueListener, 0));
-                        add(new SeekBarRgbaValueSetter(
-                                null, ModelDataKeys.HAIR_COLOR, valueListener, 1));
-                        add(new SeekBarRgbaValueSetter(
-                                null, ModelDataKeys.HAIR_COLOR, valueListener, 2));
-                        add(new SeekBarRgbaValueSetter(
-                                null, ModelDataKeys.HAIR_COLOR, valueListener, 3));
-                        add(new SeekBarRgbaValueSetter(
-                                null, ModelDataKeys.HAIR_COLOR, valueListener, 4));
+                                "Hair color (rgba)", ModelDataKeys.HAIR_COLOR, valueListener));
                     }
                 });
                 put("Hair strands", new ArrayList<ValueSetter>() {
@@ -251,13 +236,6 @@ final class VSModel {
                         add( new LoadImageButtonValueSetter(
                             "Load an image", ModelDataKeys.FILTER_SET, valueListener));
 
-                    }
-                });
-                put("Eye bags", new ArrayList<ValueSetter>() {
-                    {
-                        add(new SwitchValueSetter(
-                            "Eye bags remove", ModelDataKeys.EYE_BAGS_REMOVAL_ENABLE,
-                            ModelDataKeys.EYE_BAGS_REMOVAL_DISABLE, valueListener));
                     }
                 });
             }
