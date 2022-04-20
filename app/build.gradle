@@ -21,8 +21,8 @@ android {
     }
 
     compileOptions {
-        sourceCompatibility 1.8
-        targetCompatibility 1.8
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
     }
 
 }
@@ -38,8 +38,7 @@ dependencies {
     androidTestImplementation 'androidx.test:rules:1.2.0'
 
     // Banuba SDK dependencies
-    implementation fileTree(dir: '../libs', include: ['*.aar'])
-    implementation files(":banuba_effect_player-release@aar")
-    implementation files(":banuba_sdk-release@aar")
+    implementation "com.banuba.sdk:banuba_sdk:1+"
+
     implementation 'com.github.TutorialsAndroid:FilePicker:v8.0.19'
 }
