@@ -5,8 +5,8 @@ const modules_faceMorph_index = require('./modules/face-morph/index.js');
 const modules_hair_index = require('./modules/hair/index.js');
 const modules_brows_index = require('./modules/brows/index.js');
 const modules_eyeBags_index = require('./modules/eye-bags/index.js');
-const modules_eyes_index = require('./modules/eyes/index.js');
 const modules_eyelashes_index = require('./modules/eyelashes/index.js');
+const modules_eyes_index = require('./modules/eyes/index.js');
 const modules_lips_index = require('./modules/lips/index.js');
 const modules_lutFilter_index = require('./modules/lut-filter/index.js');
 const modules_makeup_index = require('./modules/makeup/index.js');
@@ -19,7 +19,7 @@ function _interopDefaultLegacy (e) { return e && typeof e === 'object' && 'defau
 
 const background__default = /*#__PURE__*/_interopDefaultLegacy(background);
 
-bnb.log(`\n\nMakeup API version: ${"1.3.0-9199cad367f6ec82a0eb150a08ff4a21608fdcad"}\n`);
+bnb.log(`\n\nMakeup API version: ${"1.4.0-4b214c5913e2abe72db92421967c2194652455f3"}\n`);
 const Skin = new modules_skin_index.Skin();
 const Eyes = new modules_eyes_index.Eyes();
 const Teeth = new modules_teeth_index.Teeth();

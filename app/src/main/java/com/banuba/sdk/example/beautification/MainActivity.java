@@ -9,6 +9,7 @@ import androidx.core.app.ActivityCompat;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.RecyclerView;
 
+import android.util.Log;
 import android.view.SurfaceView;
 import android.view.ViewGroup;
 import android.widget.Toast;
@@ -18,6 +19,7 @@ import com.banuba.sdk.example.beautification.effects.beauty.ModelDataListener;
 import com.banuba.sdk.effect_player.Effect;
 import com.banuba.sdk.manager.BanubaSdkManager;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Objects;
 
@@ -48,6 +50,7 @@ class MyColor {
 public class MainActivity extends AppCompatActivity implements ModelDataListener {
     private static final int REQUEST_CODE_CAMERA_PERMISSION = 10072;
     private static final int REQUEST_WRITE_STORAGE_PERMISSION = 112;
+    private static final String QUOTE = "\"";
 
     private EffectController mEffectController = null;
     private BanubaSdkManager mSdkManager = null;
@@ -145,14 +148,13 @@ public class MainActivity extends AppCompatActivity implements ModelDataListener
 
     @Override
     public void onSetterFloatValueChanged(String key, float value) {
-        String s = "'" + value + "'";
-        mCurrentEffect.evalJs(makeJsMethod(key, s), null);
+        mCurrentEffect.evalJs(makeJsMethod(key, Float.toString(value)), null);
     }
 
     @Override
     public void onSetterRgbaValueChanged(String key, float r, float g, float b, float a) {
-        String s = "'" + r + " " + g + " " + b + " " + a + "'";
-        mCurrentEffect.evalJs(makeJsMethod(key, s), null);
+        String arg = rgbaToString(r, g, b, a);
+        mCurrentEffect.evalJs(makeJsMethod(key, arg), null);
     }
 
     @Override
@@ -174,20 +176,19 @@ public class MainActivity extends AppCompatActivity implements ModelDataListener
         MyColor[] colors = mHairColorMap.get(key);
         colors[index].set(r, g, b, a);
 
-        String valArray = "";
-        int clNum = 0;
+        ArrayList<String> args = new ArrayList<String>();
         for (MyColor cl: colors) {
             if (cl.used) {
-                if (!valArray.isEmpty()) {
-                    valArray += ", ";
-                }
-                valArray += "\'" + cl.r + " " + cl.g + " " + cl.b + " " + cl.a + "\'";
-                clNum++;
+                String arg = rgbaToString(cl.r, cl.g, cl.b, cl.a);
+                args.add(arg);
             }
         }
 
-        String val = clNum == 0 ? "0.0 0.0 0.0 0.0" : (clNum == 1 ? valArray : "[" + valArray + "]");
-        mCurrentEffect.evalJs(makeJsMethod(key, val), null);
+        String arg = rgbaToString(0.0f, 0.0f, 0.0f, 0.0f);
+        if (!args.isEmpty()) {
+            arg = args.toString();
+        }
+        mCurrentEffect.evalJs(makeJsMethod(key, arg), null);
     }
 
     @Override
@@ -221,6 +222,10 @@ public class MainActivity extends AppCompatActivity implements ModelDataListener
             mSdkManager.releaseSurface();
         }
         super.onDestroy();
+    }
+
+    private String rgbaToString(float r, float g, float b, float a) {
+        return String.format("\"%f %f %f %f\"", r, g, b, a);
     }
 
     private String makeJsMethod(String method, String params) {
