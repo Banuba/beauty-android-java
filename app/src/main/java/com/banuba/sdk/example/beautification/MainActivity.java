@@ -21,6 +21,7 @@ import com.banuba.sdk.manager.BanubaSdkManager;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Locale;
 import java.util.Objects;
 
 class MyColor {
@@ -225,7 +226,7 @@ public class MainActivity extends AppCompatActivity implements ModelDataListener
     }
 
     private String rgbaToString(float r, float g, float b, float a) {
-        return String.format("\"%f %f %f %f\"", r, g, b, a);
+        return String.format(Locale.US, "'%f %f %f %f'", r, g, b, a);
     }
 
     private String makeJsMethod(String method, String params) {

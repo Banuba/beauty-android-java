@@ -4,7 +4,9 @@ Quick start examples for [Banuba SDK on Android](https://docs.banuba.com/face-ar
 
 1. Get the latest Banuba SDK client token. Please fill in our form on [form on banuba.com](https://www.banuba.com/face-filters-sdk) website, or contact us via [info@banuba.com](mailto:info@banuba.com).
 2. Copy and Paste your banuba client token into appropriate section of `beauty-android-java/app/src/main/java/com/banuba/sdk/example/beautification/BanubaClientToken.java` with “” symbols.
-3. Open the project in Android Studio and run the necessary target using the usual steps.
+3. Get and unpack the latest version of `Makeup` effect from [here](https://docs.banuba.com/face-ar-sdk-v1/overview/demo_face_filters).
+The `Makeup` folder should be located in the `beauty-android-java/app/src/main/assets/bnb-resources/effects/` folder. 
+4. Open the project in Android Studio and run the necessary target using the usual steps.
 
 # Contributing
 
