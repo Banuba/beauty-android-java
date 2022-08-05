@@ -9,7 +9,7 @@ import androidx.core.app.ActivityCompat;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.RecyclerView;
 
-import android.util.Log;
+import android.os.Parcelable;
 import android.view.SurfaceView;
 import android.view.ViewGroup;
 import android.widget.Toast;
@@ -17,11 +17,13 @@ import android.widget.Toast;
 import com.banuba.sdk.example.beautification.effects.EffectController;
 import com.banuba.sdk.example.beautification.effects.beauty.ModelDataListener;
 import com.banuba.sdk.effect_player.Effect;
+import com.banuba.sdk.example.beautification.effects.beauty.SettersData.SettersData;
 import com.banuba.sdk.manager.BanubaSdkManager;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Objects;
 
 class MyColor {
@@ -56,12 +58,27 @@ public class MainActivity extends AppCompatActivity implements ModelDataListener
     private EffectController mEffectController = null;
     private BanubaSdkManager mSdkManager = null;
     private Effect mCurrentEffect;
-
     private HashMap<String, MyColor[]> mHairColorMap;
+    static final String ACTIVE_GROUP_INDEX = "activeGroupIndex";
+    static final String GROUPS_NAMES_LIST = "groupsNamesList";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        int activeGroupIndex = 0;
+        ArrayList<String> groupsNames;
+        HashMap<String, ArrayList<Parcelable>> settersData = null;
+        if (savedInstanceState != null) {
+            // Restore value of members from saved state
+            activeGroupIndex = savedInstanceState.getInt(ACTIVE_GROUP_INDEX);
+            groupsNames = savedInstanceState.getStringArrayList(GROUPS_NAMES_LIST);
+            settersData = new HashMap<>();
+            for(String name : groupsNames) {
+                ArrayList<Parcelable> currentSettersData =
+                        savedInstanceState.getParcelableArrayList(name);
+                settersData.put(name, currentSettersData);
+            }
+        }
 
         requestCameraPermission();
         requestWriteStoragePermission();
@@ -76,9 +93,10 @@ public class MainActivity extends AppCompatActivity implements ModelDataListener
 
         final RecyclerView effectItemView = findViewById(R.id.effect_selector_view);
         final ViewGroup effectValuesView = findViewById(R.id.effect_parameters_view);
-        mEffectController = new EffectController(effectItemView, effectValuesView, this);
+        mCurrentEffect = mSdkManager.loadEffect(BanubaSdkManager.getResourcesBase() + "/effects/Makeup", false);
+        mEffectController = new EffectController(effectItemView, effectValuesView, this, settersData);
 
-        loadEffect("Makeup");
+        loadEffect("Makeup", activeGroupIndex);
     }
 
     private boolean isCameraPermissionGranted() {
@@ -233,8 +251,32 @@ public class MainActivity extends AppCompatActivity implements ModelDataListener
         return method + (params == null ? "()" : "(" + params + ")");
     }
 
-    private void loadEffect(String effect) {
-        mCurrentEffect = mSdkManager.loadEffect(BanubaSdkManager.getResourcesBase() + "/effects/" + effect, false);
-        mEffectController.onEffectChanged(effect);
+    private void loadEffect(String effect, int activeGroupIndex) {
+
+        mEffectController.onEffectChanged(effect, activeGroupIndex);
+    }
+
+    private int getActiveGroupIndex() {
+        return mEffectController.getActiveGroupIndex();
+    }
+
+    private HashMap<String, ArrayList<SettersData>>  getSettersData() {
+        return mEffectController.getSettersData();
+    }
+
+    @Override
+    public void onSaveInstanceState(Bundle savedInstanceState) {
+        savedInstanceState.putInt(ACTIVE_GROUP_INDEX, getActiveGroupIndex());
+        ArrayList<String> groupsNames = new ArrayList<>();
+        HashMap<String, ArrayList<SettersData>>  settersData = getSettersData();
+        for(Map.Entry<String, ArrayList<SettersData>> entry : settersData.entrySet()) {
+            String name = entry.getKey();
+            ArrayList<SettersData> currentSettersData = entry.getValue();
+            savedInstanceState.putParcelableArrayList(name, currentSettersData);
+            groupsNames.add(name);
+        }
+        savedInstanceState.putStringArrayList(GROUPS_NAMES_LIST, groupsNames);
+        // Always call the superclass so it can save the view hierarchy state
+        super.onSaveInstanceState(savedInstanceState);
     }
 }

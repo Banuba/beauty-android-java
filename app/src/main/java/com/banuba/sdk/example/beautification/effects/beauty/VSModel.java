@@ -1,5 +1,12 @@
 package com.banuba.sdk.example.beautification.effects.beauty;
 
+import android.os.Parcelable;
+
+import com.banuba.sdk.example.beautification.effects.beauty.SettersData.SettersData;
+import com.banuba.sdk.example.beautification.effects.beauty.SettersData.SettersFileNameData;
+import com.banuba.sdk.example.beautification.effects.beauty.SettersData.SettersFloatData;
+import com.banuba.sdk.example.beautification.effects.beauty.SettersData.SettersRGBAData;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -90,154 +97,27 @@ final class ModelDataKeys {
 final class VSModel {
     private Map<String, List<ValueSetter>> mModel;
 
-    VSModel(ModelDataListener valueListener) {
+    VSModel(ModelDataListener valueListener, HashMap<String, ArrayList<Parcelable>> settersData) {
         mModel = new HashMap<String, List<ValueSetter>>() {
             {
-                put("Morph", new ArrayList<ValueSetter>() {
-                    {
-                        add(new SeekBarFloatValueSetter(
-                            "Face", ModelDataKeys.FACE_MORPH_FACE, valueListener));
-                        add(new SeekBarFloatValueSetter(
-                            "Eyes", ModelDataKeys.FACE_MORPH_EYES, valueListener));
-                        add(new SeekBarFloatValueSetter(
-                            "Nose", ModelDataKeys.FACE_MORPH_NOSE, valueListener));
-                    }
-                });
-                put("Skin", new ArrayList<ValueSetter>() {
-                    {
-                        add(new SeekBarFloatValueSetter(
-                            "Softness", ModelDataKeys.SKIN_SOFTENING, valueListener));
-                        add(new SeekBarRgbaValueSetter(
-                            "Color", ModelDataKeys.SKIN_COLOR, valueListener));
-                    }
-                });
-                put("Eyes", new ArrayList<ValueSetter>() {
-                    {
-                        add(new SeekBarFloatValueSetter(
-                            "Whitening", ModelDataKeys.EYES_WHITENING, valueListener));
-                        add(new SeekBarRgbaValueSetter(
-                            "Color", ModelDataKeys.EYES_COLOR, valueListener));
-                        add(new SeekBarFloatValueSetter(
-                            "Flare", ModelDataKeys.EYES_FLARE, valueListener));
-                    }
-                });
-
-                put("Makeup eyeliner", new ArrayList<ValueSetter>() {
-                    {
-                        add(new SeekBarRgbaValueSetter(
-                            "Color", ModelDataKeys.MAKEUP_EYELINER, valueListener));
-                        add(new LoadImageButtonValueSetter(
-                                "Load eyeliner image", ModelDataKeys.MAKEUP_EYELINER, valueListener));
-                    }
-                });
-                put("Makeup eyeshadow", new ArrayList<ValueSetter>() {
-                    {
-                        add(new SeekBarRgbaValueSetter(
-                            "Color", ModelDataKeys.MAKEUP_EYESHADOW, valueListener));
-                        add(new LoadImageButtonValueSetter(
-                            "Load eyeshadow image", ModelDataKeys.MAKEUP_EYESHADOW, valueListener));
-                    }
-                });
-                put("Makeup texture", new ArrayList<ValueSetter>() {
-                    {
-                        add(new LoadImageButtonValueSetter(
-                            "Load makeup image", ModelDataKeys.MAKEUP_SET, valueListener));
-                    }
-                });
-                put("Makeup lashes", new ArrayList<ValueSetter>() {
-                    {
-                        add(new SeekBarRgbaValueSetter(
-                            "Color", ModelDataKeys.MAKEUP_LASHES, valueListener));
-                        add( new LoadImageButtonValueSetter(
-                            "Load lashes image", ModelDataKeys.EYELASHES_TEXTURE, valueListener));
-                    }
-                });
-                put("Makeup highlighter", new ArrayList<ValueSetter>() {
-                    {
-                        add(new SeekBarRgbaValueSetter(
-                            "Color", ModelDataKeys.MAKEUP_HIGHLIGHTER, valueListener));
-                        add(new LoadImageButtonValueSetter(
-                                "Load highlighter image", ModelDataKeys.MAKEUP_HIGHLIGHTER, valueListener));
-                    }
-                });
-                put("Makeup blushes", new ArrayList<ValueSetter>() {
-                    {
-                        add(new SeekBarRgbaValueSetter(
-                            "Color", ModelDataKeys.MAKEUP_BLUSHES, valueListener));
-                        add(new LoadImageButtonValueSetter(
-                            "Load blushes image", ModelDataKeys.MAKEUP_BLUSHES, valueListener));
-                    }
-                });
-                put("Makeup contour", new ArrayList<ValueSetter>() {
-                    {
-                        add(new SeekBarRgbaValueSetter(
-                            "Color", ModelDataKeys.MAKEUP_CONTOUR, valueListener));
-                        add(new LoadImageButtonValueSetter(
-                            "Load contour image", ModelDataKeys.MAKEUP_CONTOUR, valueListener));
-                    }
-                });
-
-                put("lips matt", new ArrayList<ValueSetter>() {
-                    {
-                        add(new SeekBarRgbaValueSetter(
-                            "Color", ModelDataKeys.LIPS_MATT, valueListener));
-                    }
-                });
-                put("lips shiny", new ArrayList<ValueSetter>() {
-                    {
-                        add(new SeekBarRgbaValueSetter(
-                            "Color", ModelDataKeys.LIPS_SHINY, valueListener));
-                    }
-                });
-                put("lips glitter", new ArrayList<ValueSetter>() {
-                    {
-                        add(new SeekBarRgbaValueSetter(
-                            "Color", ModelDataKeys.LIPS_GLITTER, valueListener));
-                    }
-                });
-
-                put("Hair color", new ArrayList<ValueSetter>() {
-                    {
-                        add(new SeekBarRgbaValueSetter(
-                                "Hair color (rgba)", ModelDataKeys.HAIR_COLOR, valueListener));
-                    }
-                });
-                put("Hair strands", new ArrayList<ValueSetter>() {
-                    {
-                        add(new SeekBarRgbaValueSetter(
-                                "Color gradient", ModelDataKeys.HAIR_STRANDS, valueListener, 0));
-                        add(new SeekBarRgbaValueSetter(
-                                null, ModelDataKeys.HAIR_STRANDS, valueListener, 1));
-                        add(new SeekBarRgbaValueSetter(
-                                null, ModelDataKeys.HAIR_STRANDS, valueListener, 2));
-                        add(new SeekBarRgbaValueSetter(
-                                null, ModelDataKeys.HAIR_STRANDS, valueListener, 3));
-                        add(new SeekBarRgbaValueSetter(
-                                null, ModelDataKeys.HAIR_STRANDS, valueListener, 4));
-                    }
-                });
-
-                put("Teeth", new ArrayList<ValueSetter>() {
-                    {
-                        add(new SeekBarFloatValueSetter(
-                            "Whitening", ModelDataKeys.TEETH_WHITENING, valueListener));
-                    }
-                });
-                put("Softlight", new ArrayList<ValueSetter>() {
-                    {
-                        add(new SeekBarFloatValueSetter(
-                            "Softlight", ModelDataKeys.SOFTLIGHT_STRENGTH, valueListener));
-                    }
-                });
-                put("Filter", new ArrayList<ValueSetter>() {
-                    {
-                        add(new SeekBarFloatValueSetter(
-                            "Strength", ModelDataKeys.FILTER_STRENGTH, valueListener));
-                        add( new LoadImageButtonValueSetter(
-                            "Load an image", ModelDataKeys.FILTER_SET, valueListener));
-
-                    }
-                });
+                put("Morph", createMorphSettersList(settersData == null ? null: settersData.get("Morph"), valueListener));
+                put("Skin", createSkinSettersList(settersData == null ? null: settersData.get("Skin"), valueListener));
+                put("Eyes", createEyesSettersList(settersData == null ? null: settersData.get("Eyes"), valueListener));
+                put("Hair color", createHairColorSettersList(settersData == null ? null: settersData.get("Hair color"), valueListener));
+                put("Hair strands", createHairStrandsSettersList(settersData == null ? null: settersData.get("Hair strands"), valueListener));
+                put("Filter", createFilterSettersList(settersData == null ? null: settersData.get("Filter"), valueListener));
+                put("Makeup eyeliner", createMakeupEyelinerSettersList(settersData == null ? null: settersData.get("Makeup eyeliner"), valueListener));
+                put("Makeup eyeshadow", createMakeupEyeshadowSettersList(settersData == null ? null: settersData.get("Makeup eyeshadow"), valueListener));
+                put("Makeup texture", createMakeupTextureSettersList(settersData == null ? null: settersData.get("Makeup texture"), valueListener));
+                put("Makeup lashes", createMakeupLashesSettersList(settersData == null ? null: settersData.get("Makeup lashes"), valueListener));
+                put("Makeup highlighter", createMakeupHighlighterSettersList(settersData == null ? null: settersData.get("Makeup highlighter"), valueListener));
+                put("Makeup blushes", createMakeupBlushesSettersList(settersData == null ? null: settersData.get("Makeup blushes"), valueListener));
+                put("Makeup contour", createMakeupContourSettersList(settersData == null ? null: settersData.get("Makeup contour"), valueListener));
+                put("lips matt", createLipsMattSettersList(settersData == null ? null: settersData.get("lips matt"), valueListener));
+                put("lips shiny", createLipsShinySettersList(settersData == null ? null: settersData.get("lips shiny"), valueListener));
+                put("lips glitter", createLipsGlitterSettersList(settersData == null ? null: settersData.get("lips glitter"), valueListener));
+                put("Teeth", createTeethSettersList(settersData == null ? null: settersData.get("Teeth"), valueListener));
+                put("Softlight", createSoftlightSettersList(settersData == null ? null: settersData.get("Softlight"), valueListener));
             }
         };
     }
@@ -257,5 +137,287 @@ final class VSModel {
         List<String> ret = new ArrayList<>(mModel.keySet());
         Collections.sort(ret);
         return ret;
+    }
+
+    HashMap<String, ArrayList<SettersData>> getSettersData() {
+        HashMap<String, ArrayList<SettersData>> settersDataMap = new HashMap<>();
+        for(Map.Entry<String, List<ValueSetter>> entry : mModel.entrySet()) {
+            String name = entry.getKey();
+            ArrayList<SettersData> settersData = new ArrayList<>();
+            for(ValueSetter setter: entry.getValue()) {
+                settersData.add(setter.getSettersData());
+            }
+            settersDataMap.put(name, settersData);
+        }
+        return settersDataMap;
+    }
+
+    List<ValueSetter> createMorphSettersList(ArrayList<Parcelable> settersData, ModelDataListener valueListener) {
+        List<ValueSetter> setterList = new ArrayList<>();
+        SettersFloatData faceData = null;
+        SettersFloatData eyesData = null;
+        SettersFloatData noseData = null;
+        if (settersData != null) {
+            faceData = (SettersFloatData) settersData.get(0);
+            eyesData = (SettersFloatData) settersData.get(1);
+            noseData = (SettersFloatData) settersData.get(2);
+        }
+        setterList.add(new SeekBarFloatValueSetter(
+                "Face", ModelDataKeys.FACE_MORPH_FACE, valueListener, faceData));
+        setterList.add(new SeekBarFloatValueSetter(
+                "Eyes", ModelDataKeys.FACE_MORPH_EYES, valueListener, eyesData));
+        setterList.add(new SeekBarFloatValueSetter(
+                "Nose", ModelDataKeys.FACE_MORPH_NOSE, valueListener, noseData));
+        return setterList;
+    }
+
+    List<ValueSetter> createSkinSettersList(ArrayList<Parcelable> settersData, ModelDataListener valueListener) {
+        List<ValueSetter> setterList = new ArrayList<>();
+        SettersFloatData softness = null;
+        SettersRGBAData color = null;
+        if (settersData != null) {
+            softness = (SettersFloatData) settersData.get(0);
+            color = (SettersRGBAData) settersData.get(1);
+        }
+        setterList.add(new SeekBarFloatValueSetter(
+                "Softness", ModelDataKeys.SKIN_SOFTENING, valueListener, softness));
+        setterList.add(new SeekBarRgbaValueSetter(
+                "Color", ModelDataKeys.SKIN_COLOR, valueListener, color));
+        return setterList;
+    }
+
+    List<ValueSetter> createEyesSettersList(ArrayList<Parcelable> settersData, ModelDataListener valueListener) {
+        List<ValueSetter> setterList = new ArrayList<>();
+        SettersFloatData whitening = null;
+        SettersRGBAData color = null;
+        SettersFloatData flare = null;
+        if (settersData != null) {
+            whitening = (SettersFloatData) settersData.get(0);
+            color = (SettersRGBAData) settersData.get(1);
+            flare  = (SettersFloatData) settersData.get(2);
+        }
+        setterList.add(new SeekBarFloatValueSetter(
+                "Whitening", ModelDataKeys.EYES_WHITENING, valueListener, whitening));
+        setterList.add(new SeekBarRgbaValueSetter(
+                "Color", ModelDataKeys.EYES_COLOR, valueListener, color));
+        setterList.add(new SeekBarFloatValueSetter(
+                "Flare", ModelDataKeys.EYES_FLARE, valueListener, flare));
+        return setterList;
+    }
+
+    List<ValueSetter> createMakeupEyelinerSettersList(ArrayList<Parcelable> settersData, ModelDataListener valueListener) {
+        List<ValueSetter> setterList = new ArrayList<>();
+        SettersRGBAData color = null;
+        SettersFileNameData loadImage = null;
+        if (settersData != null) {
+            color = (SettersRGBAData) settersData.get(0);
+            loadImage = (SettersFileNameData) settersData.get(1);
+        }
+        setterList.add(new SeekBarRgbaValueSetter(
+                "Color", ModelDataKeys.MAKEUP_EYELINER, valueListener, color));
+        setterList.add(new LoadImageButtonValueSetter(
+                "Load eyeliner image", ModelDataKeys.MAKEUP_EYELINER, valueListener, loadImage));
+        return setterList;
+    }
+
+    List<ValueSetter> createMakeupEyeshadowSettersList(ArrayList<Parcelable> settersData, ModelDataListener valueListener) {
+        List<ValueSetter> setterList = new ArrayList<>();
+        SettersRGBAData color = null;
+        SettersFileNameData loadImage = null;
+        if (settersData != null) {
+            color = (SettersRGBAData) settersData.get(0);
+            loadImage = (SettersFileNameData) settersData.get(1);
+        }
+        setterList.add(new SeekBarRgbaValueSetter(
+                "Color", ModelDataKeys.MAKEUP_EYESHADOW, valueListener, color));
+        setterList.add(new LoadImageButtonValueSetter(
+                "Load eyeshadow image", ModelDataKeys.MAKEUP_EYESHADOW, valueListener, loadImage));
+        return setterList;
+    }
+
+    List<ValueSetter> createMakeupTextureSettersList(ArrayList<Parcelable> settersData, ModelDataListener valueListener) {
+        List<ValueSetter> setterList = new ArrayList<>();
+        SettersFileNameData loadImage = null;
+        if (settersData != null) {
+            loadImage = (SettersFileNameData) settersData.get(0);
+        }
+        setterList.add(new LoadImageButtonValueSetter(
+                "Load makeup image", ModelDataKeys.MAKEUP_SET, valueListener, loadImage));
+        return setterList;
+    }
+
+    List<ValueSetter> createMakeupLashesSettersList(ArrayList<Parcelable> settersData, ModelDataListener valueListener) {
+        List<ValueSetter> setterList = new ArrayList<>();
+        SettersRGBAData color = null;
+        SettersFileNameData loadImage = null;
+        if (settersData != null) {
+            color = (SettersRGBAData) settersData.get(0);
+            loadImage = (SettersFileNameData) settersData.get(1);
+        }
+        setterList.add(new SeekBarRgbaValueSetter(
+                "Color", ModelDataKeys.MAKEUP_LASHES, valueListener, color));
+        setterList.add(new LoadImageButtonValueSetter(
+                "Load lashes image", ModelDataKeys.EYELASHES_TEXTURE, valueListener, loadImage));
+        return setterList;
+    }
+
+    List<ValueSetter> createMakeupHighlighterSettersList(ArrayList<Parcelable> settersData, ModelDataListener valueListener) {
+        List<ValueSetter> setterList = new ArrayList<>();
+        SettersRGBAData color = null;
+        SettersFileNameData loadImage = null;
+        if (settersData != null) {
+            color = (SettersRGBAData) settersData.get(0);
+            loadImage = (SettersFileNameData) settersData.get(1);
+        }
+        setterList.add(new SeekBarRgbaValueSetter(
+                "Color", ModelDataKeys.MAKEUP_HIGHLIGHTER, valueListener, color));
+        setterList.add(new LoadImageButtonValueSetter(
+                "Load highlighter image", ModelDataKeys.MAKEUP_HIGHLIGHTER, valueListener, loadImage));
+        return setterList;
+    }
+
+    List<ValueSetter> createMakeupBlushesSettersList(ArrayList<Parcelable> settersData, ModelDataListener valueListener) {
+        List<ValueSetter> setterList = new ArrayList<>();
+        SettersRGBAData color = null;
+        SettersFileNameData loadImage = null;
+        if (settersData != null) {
+            color = (SettersRGBAData) settersData.get(0);
+            loadImage = (SettersFileNameData) settersData.get(1);
+        }
+        setterList.add(new SeekBarRgbaValueSetter(
+                "Color", ModelDataKeys.MAKEUP_BLUSHES, valueListener, color));
+        setterList.add(new LoadImageButtonValueSetter(
+                "Load blushes image", ModelDataKeys.MAKEUP_BLUSHES, valueListener, loadImage));
+        return setterList;
+    }
+
+    List<ValueSetter> createMakeupContourSettersList(ArrayList<Parcelable> settersData, ModelDataListener valueListener) {
+        List<ValueSetter> setterList = new ArrayList<>();
+        SettersRGBAData color = null;
+        SettersFileNameData loadImage = null;
+        if (settersData != null) {
+            color = (SettersRGBAData) settersData.get(0);
+            loadImage = (SettersFileNameData) settersData.get(1);
+        }
+        setterList.add(new SeekBarRgbaValueSetter(
+                "Color", ModelDataKeys.MAKEUP_CONTOUR, valueListener, color));
+        setterList.add(new LoadImageButtonValueSetter(
+                "Load contour image", ModelDataKeys.MAKEUP_CONTOUR, valueListener, loadImage));
+        return setterList;
+    }
+
+    List<ValueSetter> createLipsMattSettersList(ArrayList<Parcelable> settersData, ModelDataListener valueListener) {
+        List<ValueSetter> setterList = new ArrayList<>();
+        SettersRGBAData color = null;
+        if (settersData != null) {
+            color = (SettersRGBAData) settersData.get(0);
+        }
+        setterList.add(new SeekBarRgbaValueSetter(
+                "Color", ModelDataKeys.LIPS_MATT, valueListener, color));
+        return setterList;
+    }
+
+    List<ValueSetter> createLipsShinySettersList(ArrayList<Parcelable> settersData, ModelDataListener valueListener) {
+        List<ValueSetter> setterList = new ArrayList<>();
+        SettersRGBAData color = null;
+        if (settersData != null) {
+            color = (SettersRGBAData) settersData.get(0);
+        }
+        setterList.add(new SeekBarRgbaValueSetter(
+                "Color", ModelDataKeys.LIPS_SHINY, valueListener, color));
+        return setterList;
+    }
+
+    List<ValueSetter> createLipsGlitterSettersList(ArrayList<Parcelable> settersData, ModelDataListener valueListener) {
+        List<ValueSetter> setterList = new ArrayList<>();
+        SettersRGBAData color = null;
+        if (settersData != null) {
+            color = (SettersRGBAData) settersData.get(0);
+        }
+        setterList.add(new SeekBarRgbaValueSetter(
+                "Color", ModelDataKeys.LIPS_GLITTER, valueListener, color));
+        return setterList;
+    }
+
+    List<ValueSetter> createHairColorSettersList(ArrayList<Parcelable> settersData, ModelDataListener valueListener) {
+        List<ValueSetter> setterList = new ArrayList<>();
+        SettersRGBAData color = null;
+        if (settersData != null) {
+            color = (SettersRGBAData) settersData.get(0);
+        }
+        setterList.add(new SeekBarRgbaValueSetter(
+                "Hair color (rgba)", ModelDataKeys.HAIR_COLOR, valueListener, color));
+        return setterList;
+    }
+
+    List<ValueSetter> createHairStrandsSettersList(ArrayList<Parcelable> settersData, ModelDataListener valueListener) {
+        List<ValueSetter> setterList = new ArrayList<>();
+        if(settersData == null) {
+            setterList.add(new SeekBarRgbaValueSetter(
+                    "Color gradient", ModelDataKeys.HAIR_STRANDS, valueListener, 0));
+            setterList.add(new SeekBarRgbaValueSetter(
+                    null, ModelDataKeys.HAIR_STRANDS, valueListener, 1));
+            setterList.add(new SeekBarRgbaValueSetter(
+                    null, ModelDataKeys.HAIR_STRANDS, valueListener, 2));
+            setterList.add(new SeekBarRgbaValueSetter(
+                    null, ModelDataKeys.HAIR_STRANDS, valueListener, 3));
+            setterList.add(new SeekBarRgbaValueSetter(
+                    null, ModelDataKeys.HAIR_STRANDS, valueListener, 4));
+            return setterList;
+        }
+
+        SettersRGBAData color = (SettersRGBAData) settersData.get(0);
+        SettersRGBAData color1 = (SettersRGBAData) settersData.get(1);
+        SettersRGBAData color2 = (SettersRGBAData) settersData.get(2);
+        SettersRGBAData color3 = (SettersRGBAData) settersData.get(3);
+        SettersRGBAData color4 = (SettersRGBAData) settersData.get(4);
+        setterList.add(new SeekBarRgbaValueSetter(
+                "Color gradient", ModelDataKeys.HAIR_STRANDS, valueListener, color));
+        setterList.add(new SeekBarRgbaValueSetter(
+                null, ModelDataKeys.HAIR_STRANDS, valueListener, color1));
+        setterList.add(new SeekBarRgbaValueSetter(
+                null, ModelDataKeys.HAIR_STRANDS, valueListener, color2));
+        setterList.add(new SeekBarRgbaValueSetter(
+                null, ModelDataKeys.HAIR_STRANDS, valueListener, color3));
+        setterList.add(new SeekBarRgbaValueSetter(
+                null, ModelDataKeys.HAIR_STRANDS, valueListener, color4));
+        return setterList;
+    }
+
+    List<ValueSetter> createTeethSettersList(ArrayList<Parcelable> settersData, ModelDataListener valueListener) {
+        List<ValueSetter> setterList = new ArrayList<>();
+        SettersFloatData value = null;
+        if (settersData != null) {
+            value = (SettersFloatData) settersData.get(0);
+        }
+        setterList.add(new SeekBarFloatValueSetter(
+                "Whitening", ModelDataKeys.TEETH_WHITENING, valueListener, value));
+        return setterList;
+    }
+
+    List<ValueSetter> createSoftlightSettersList(ArrayList<Parcelable> settersData, ModelDataListener valueListener) {
+        List<ValueSetter> setterList = new ArrayList<>();
+        SettersFloatData value = null;
+        if (settersData != null) {
+            value = (SettersFloatData) settersData.get(0);
+        }
+        setterList.add(new SeekBarFloatValueSetter(
+                "Softlight", ModelDataKeys.SOFTLIGHT_STRENGTH, valueListener, value));
+        return setterList;
+    }
+
+    List<ValueSetter> createFilterSettersList(ArrayList<Parcelable> settersData, ModelDataListener valueListener) {
+        List<ValueSetter> setterList = new ArrayList<>();
+        SettersFloatData strength = null;
+        SettersFileNameData loadImage = null;
+        if (settersData != null) {
+            strength = (SettersFloatData) settersData.get(0);
+            loadImage = (SettersFileNameData) settersData.get(1);
+        }
+        setterList.add(new SeekBarFloatValueSetter(
+                "Strength", ModelDataKeys.FILTER_STRENGTH, valueListener, strength));
+        setterList.add(new LoadImageButtonValueSetter(
+                "Load an image", ModelDataKeys.FILTER_SET, valueListener, loadImage));
+        return setterList;
     }
 }

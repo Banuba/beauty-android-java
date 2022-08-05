@@ -1,12 +1,15 @@
 package com.banuba.sdk.example.beautification.effects;
 
 import androidx.recyclerview.widget.RecyclerView;
+
+import android.os.Parcelable;
 import android.view.ViewGroup;
-import android.widget.Spinner;
 
 import com.banuba.sdk.example.beautification.effects.beauty.BeautyController;
 import com.banuba.sdk.example.beautification.effects.beauty.ModelDataListener;
+import com.banuba.sdk.example.beautification.effects.beauty.SettersData.SettersData;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -24,9 +27,10 @@ public class EffectController {
     public EffectController(
         RecyclerView selectorView,
         ViewGroup valuesView,
-        ModelDataListener modelDataListener) {
+        ModelDataListener modelDataListener,
+        HashMap<String, ArrayList<Parcelable>> settersData) {
 
-        BeautyController makeup = new BeautyController(selectorView, valuesView, modelDataListener);
+        BeautyController makeup = new BeautyController(selectorView, valuesView, modelDataListener, settersData);
         mEffectViews = new HashMap<String, EffectValuesView>() {
             {
                 put("Makeup", makeup);
@@ -34,7 +38,7 @@ public class EffectController {
         };
     }
 
-    public void onEffectChanged(String effect) {
+    public void onEffectChanged(String effect, int activeGroupIndex) {
         if (current_effect.equals(effect)) {
             return;
         }
@@ -46,9 +50,19 @@ public class EffectController {
 
         EffectValuesView current = mEffectViews.get(effect);
         if (current != null) {
-            current.activate();
+            current.activate(activeGroupIndex);
         }
 
         current_effect = effect;
+    }
+
+    public int getActiveGroupIndex() {
+        EffectValuesView currentView = mEffectViews.get(current_effect);
+        return currentView.getActiveGroupIndex();
+    }
+
+    public HashMap<String, ArrayList<SettersData>>  getSettersData() {
+        EffectValuesView currentView = mEffectViews.get(current_effect);
+        return currentView.getSettersData();
     }
 }
