@@ -31,11 +31,11 @@ final class VSGroupSelector {
      * Populate group selector with values
      * @param effects List of elements for selector
      */
-    void populate(List<String> effects) {
+    void populate(List<String> effects, int activeGroupIndex) {
         mView.setVisibility(View.VISIBLE);
         mView.setLayoutManager(
             new LinearLayoutManager(mView.getContext(), LinearLayoutManager.HORIZONTAL, false));
-        mView.setAdapter(new EffectSelectorViewAdapter(effects, mListener, mView));
+        mView.setAdapter(new EffectSelectorViewAdapter(effects, activeGroupIndex, mListener, mView));
     }
 
     void clear() {
@@ -51,14 +51,15 @@ class EffectSelectorViewAdapter extends RecyclerView.Adapter<EffectSelectorViewA
     private RecyclerView mView;
     private VSListSelectorListener mListener;
 
-    private int mSelectedIdx = 0;
+    private int mSelectedIdx;
 
     EffectSelectorViewAdapter(
-        List<String> effects, VSListSelectorListener listener, RecyclerView view) {
+        List<String> effects, int activeGroupIndex, VSListSelectorListener listener, RecyclerView view) {
         mEffects = effects;
         mListener = listener;
         mView = view;
-        setSelectedGroup(0);
+        mSelectedIdx = activeGroupIndex;
+        setSelectedGroup(activeGroupIndex);
     }
 
     @Override
@@ -72,7 +73,7 @@ class EffectSelectorViewAdapter extends RecyclerView.Adapter<EffectSelectorViewA
 
     private void setSelectedGroup(int idx) {
         mSelectedIdx = idx;
-        mListener.onVSListSelectorValueChanged(mEffects.get(mSelectedIdx));
+        mListener.onVSListSelectorValueChanged(mEffects.get(mSelectedIdx), mSelectedIdx);
         notifyDataSetChanged();
     }
 

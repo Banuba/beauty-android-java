@@ -2,9 +2,7 @@ package com.banuba.sdk.example.beautification.effects.beauty;
 
 import android.os.Environment;
 import android.view.View;
-import android.widget.CompoundButton;
 import android.widget.SeekBar;
-import android.widget.Switch;
 import android.widget.Button;
 import android.view.*;
 import android.widget.TextView;
@@ -12,6 +10,10 @@ import android.widget.TextView;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.banuba.sdk.example.beautification.R;
+import com.banuba.sdk.example.beautification.effects.beauty.SettersData.SettersData;
+import com.banuba.sdk.example.beautification.effects.beauty.SettersData.SettersFileNameData;
+import com.banuba.sdk.example.beautification.effects.beauty.SettersData.SettersFloatData;
+import com.banuba.sdk.example.beautification.effects.beauty.SettersData.SettersRGBAData;
 import com.developer.filepicker.controller.DialogSelectionListener;
 import com.developer.filepicker.model.DialogConfigs;
 import com.developer.filepicker.model.DialogProperties;
@@ -43,13 +45,20 @@ abstract class ValueSetter {
     abstract void setView(View view);
 
     abstract void addToViewGroup(LayoutInflater inflater, ViewGroup valuesParentView);
+
+    abstract SettersData getSettersData();
 }
 
 class LoadImageButtonValueSetter extends ValueSetter implements View.OnClickListener, DialogSelectionListener {
     protected Button mView;
+    private String mFileName = "";
 
-    LoadImageButtonValueSetter(String displayName, String parameterName, ModelDataListener cb) {
+    LoadImageButtonValueSetter(String displayName, String parameterName, ModelDataListener cb, SettersFileNameData data) {
         super(displayName, parameterName, cb);
+        if(data != null) {
+            mFileName = data.mFileName;
+//            onSelectedFilePaths(new String[]{mFileName});
+        }
     }
 
     @Override
@@ -70,6 +79,11 @@ class LoadImageButtonValueSetter extends ValueSetter implements View.OnClickList
         View setter = view.findViewById(R.id.value_setter);
         setView(setter);
         valuesParentView.addView(view);
+    }
+
+    @Override
+    SettersData getSettersData() {
+        return new SettersFileNameData(mFileName);
     }
 
     @Override
@@ -94,10 +108,10 @@ class LoadImageButtonValueSetter extends ValueSetter implements View.OnClickList
     public void onSelectedFilePaths(String[] files) {
         //files is the array of the paths of files selected by the Application User.
         if (files.length == 1) {
+            mFileName = files[0];
             mValueListener.onSetterLoadImage(getParameterName(), files[0]);
         }
     }
-
 }
 
 class SeekBarFloatValueSetter extends ValueSetter implements SeekBar.OnSeekBarChangeListener {
@@ -106,8 +120,12 @@ class SeekBarFloatValueSetter extends ValueSetter implements SeekBar.OnSeekBarCh
     protected SeekBar mView;
     protected int myValue = 0;
 
-    SeekBarFloatValueSetter(String displayName, String parameterName, ModelDataListener cb) {
+    SeekBarFloatValueSetter(String displayName, String parameterName, ModelDataListener cb, SettersFloatData data) {
         super(displayName, parameterName, cb);
+        if(data != null) {
+            myValue = data.mValue;
+            mValueListener.onSetterFloatValueChanged(getParameterName(), (float)myValue / SCALE);
+        }
     }
 
     @Override
@@ -136,6 +154,11 @@ class SeekBarFloatValueSetter extends ValueSetter implements SeekBar.OnSeekBarCh
     }
 
     @Override
+    SettersData getSettersData() {
+        return new SettersFloatData(myValue);
+    }
+
+    @Override
     public void onProgressChanged(SeekBar seekBar, int i, boolean b) {
         myValue = i;
         mValueListener.onSetterFloatValueChanged(getParameterName(), (float)myValue / SCALE);
@@ -154,12 +177,20 @@ class SeekBarRgbaValueSetter extends ValueSetter implements ColorSeekBar.OnColor
     final static protected int SCALE = 1000;
 
     protected ColorSeekBar mView;
+    protected int mColorBarPosition = 0;
     protected int mColor = 0;
-    protected int mAlpha = 255;
+    protected int mAlphaBarPosition = 255;
     protected int mIndex = -1;
 
-    SeekBarRgbaValueSetter(String displayName, String parameterName, ModelDataListener cb) {
+    SeekBarRgbaValueSetter(String displayName, String parameterName, ModelDataListener cb, SettersRGBAData data) {
         super(displayName, parameterName, cb);
+        if(data != null) {
+            mColorBarPosition = data.mColorBarPosition;
+            mColor = data.mColor;
+            mAlphaBarPosition = data.mAlphaBarPosition;
+            mIndex = data.mIndex;
+            onColorChangeListener(mColorBarPosition, mAlphaBarPosition, mColor);
+        }
     }
 
     SeekBarRgbaValueSetter(String displayName, String parameterName, ModelDataListener cb, int index) {
@@ -175,8 +206,8 @@ class SeekBarRgbaValueSetter extends ValueSetter implements ColorSeekBar.OnColor
         mView = (ColorSeekBar) view;
         if (mView != null) {
             mView.setMaxPosition(SCALE);
-            mView.setColorBarPosition(mColor);
-            mView.setAlphaBarPosition(mAlpha);
+            mView.setColorBarPosition(mColorBarPosition);
+            mView.setAlphaBarPosition(mAlphaBarPosition);
             mView.setOnColorChangeListener(this);
         }
     }
@@ -196,9 +227,15 @@ class SeekBarRgbaValueSetter extends ValueSetter implements ColorSeekBar.OnColor
     }
 
     @Override
+    SettersRGBAData getSettersData() {
+        return new SettersRGBAData(mColorBarPosition, mColor, mAlphaBarPosition, mIndex);
+    }
+
+    @Override
     public void onColorChangeListener(int colorBarPosition, int alphaBarPosition, int color) {
-        mColor = colorBarPosition;
-        mAlpha = alphaBarPosition;
+        mColorBarPosition = colorBarPosition;
+        mAlphaBarPosition = alphaBarPosition;
+        mColor = color;
 
         float alpha = (float)((color >> 24) & 0xff) / 0xff;
         float red = (float)((color >> 16) & 0xff) / 0xff;
@@ -209,51 +246,6 @@ class SeekBarRgbaValueSetter extends ValueSetter implements ColorSeekBar.OnColor
             mValueListener.onSetterRgbaValueChanged(getParameterName(), red, green, blue, alpha);
         } else {
             mValueListener.onSetterRgbaMultipleColorsValueChanged(getParameterName(), red, green, blue, alpha, mIndex);
-        }
-    }
-}
-
-class SwitchValueSetter extends ValueSetter implements Switch.OnCheckedChangeListener {
-    private Switch mView;
-    private boolean myValue = false;
-    private String paramNameOff;
-
-    SwitchValueSetter(String displayName, String parameterNameOn, String parameterNameOff, ModelDataListener cb) {
-        super(displayName, parameterNameOn, cb);
-        paramNameOff = parameterNameOff;
-    }
-
-    @Override
-    void setView(View view) {
-        if (view != null && !(view instanceof Switch)) {
-            throw new IllegalArgumentException("Invalid view type: " + view.toString());
-        }
-        mView = (Switch) view;
-        if (mView != null) {
-            mView.setOnCheckedChangeListener(this);
-            mView.setChecked(myValue);
-        }
-    }
-
-    @Override
-    void addToViewGroup(LayoutInflater inflater, ViewGroup valuesParentView) {
-        TextView tv = (TextView) inflater.inflate(R.layout.vsetter_title, valuesParentView, false);
-        tv.setText(getDisplayName());
-        valuesParentView.addView(tv);
-
-        View view = inflater.inflate(R.layout.vsetter_switch, valuesParentView, false);
-        View setter = view.findViewById(R.id.value_setter);
-        setView(setter);
-        valuesParentView.addView(view);
-    }
-
-    @Override
-    public void onCheckedChanged(CompoundButton compoundButton, boolean b) {
-        myValue = b;
-        if (b) {
-            mValueListener.onSetterEvent(getParameterName());
-        } else {
-            mValueListener.onSetterEvent(paramNameOff);
         }
     }
 }

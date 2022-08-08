@@ -1,12 +1,17 @@
 package com.banuba.sdk.example.beautification.effects.beauty;
 
 import androidx.recyclerview.widget.RecyclerView;
+
+import android.os.Parcelable;
 import android.view.LayoutInflater;
 import android.view.ViewGroup;
 
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
 import com.banuba.sdk.example.beautification.effects.EffectValuesView;
+import com.banuba.sdk.example.beautification.effects.beauty.SettersData.SettersData;
 
 public class BeautyController implements VSListSelectorListener, EffectValuesView  {
     // UI components model
@@ -20,12 +25,14 @@ public class BeautyController implements VSListSelectorListener, EffectValuesVie
 
     private List<ValueSetter> mActiveGroup;
     private VSGroupSelector mGroupSelector;
+    private int mActiveGroupIndex = 0;
 
     public BeautyController(
         RecyclerView VSGroupSelectorView,
         ViewGroup valuesView,
-        ModelDataListener modelDataListener) {
-        mModel = new VSModel(modelDataListener);
+        ModelDataListener modelDataListener,
+        HashMap<String, ArrayList<Parcelable>> settersData) {
+        mModel = new VSModel(modelDataListener, settersData);
 
         mGroupSelector = new VSGroupSelector(this, VSGroupSelectorView);
         mValuesParentView = valuesView;
@@ -37,7 +44,8 @@ public class BeautyController implements VSListSelectorListener, EffectValuesVie
      * @param name New selected group name
      */
     @Override
-    public void onVSListSelectorValueChanged(String name) {
+    public void onVSListSelectorValueChanged(String name, int index) {
+        mActiveGroupIndex = index;
         mValuesParentView.removeAllViews();
         resetActiveSetters(mModel.getGroup(name));
 
@@ -60,8 +68,9 @@ public class BeautyController implements VSListSelectorListener, EffectValuesVie
      * Show beautification UI and call effect update
      */
     @Override
-    public void activate() {
-        mGroupSelector.populate(mModel.getGroupNames());
+    public void activate(int activeGroupIndex) {
+        mActiveGroupIndex = activeGroupIndex;
+        mGroupSelector.populate(mModel.getGroupNames(), activeGroupIndex);
     }
 
     /**
@@ -72,5 +81,14 @@ public class BeautyController implements VSListSelectorListener, EffectValuesVie
         resetActiveSetters(null);
         mGroupSelector.clear();
         mValuesParentView.removeAllViews();
+    }
+
+    @Override
+    public int getActiveGroupIndex() {
+        return mActiveGroupIndex;
+    }
+
+    public HashMap<String, ArrayList<SettersData>>  getSettersData() {
+        return mModel.getSettersData();
     }
 }
