@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Button xmlns:android="http://schemas.android.com/apk/res/android"
-    android:id="@+id/value_setter"
+    android:id="@+id/load_image_setter"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:layout_columnSpan="2"

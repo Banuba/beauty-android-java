@@ -37,10 +37,6 @@ class MyColor {
         set(0.0f, 0.0f, 0.0f, 0.0f);
     }
 
-    public MyColor(float r, float g, float b, float a) {
-        set(r, g, b, a);
-    }
-
     public void set(float r, float g, float b, float a) {
         this.r = r;
         this.g = g;
@@ -60,12 +56,13 @@ public class MainActivity extends AppCompatActivity implements ModelDataListener
     private Effect mCurrentEffect;
     private HashMap<String, MyColor[]> mHairColorMap;
     static final String ACTIVE_GROUP_INDEX = "activeGroupIndex";
+    static final int DEFAULT_ACTIVE_GROUP_INDEX = 0;
     static final String GROUPS_NAMES_LIST = "groupsNamesList";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        int activeGroupIndex = 0;
+        int activeGroupIndex = DEFAULT_ACTIVE_GROUP_INDEX;
         ArrayList<String> groupsNames;
         HashMap<String, ArrayList<Parcelable>> settersData = null;
         if (savedInstanceState != null) {

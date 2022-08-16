@@ -3,10 +3,10 @@ package com.banuba.sdk.example.beautification.effects.beauty.SettersData;
 import android.os.Parcel;
 
 public class SettersRGBAData extends SettersData {
-    public int mColorBarPosition = 0;
-    public int mColor = 0;
-    public int mAlphaBarPosition = 255;
-    public int mIndex = -1;
+    public int mColorBarPosition;
+    public int mColor;
+    public int mAlphaBarPosition;
+    public int mIndex;
 
     public SettersRGBAData(int colorBarPosition, int color, int alphaBarPosition, int index) {
         mColorBarPosition = colorBarPosition;

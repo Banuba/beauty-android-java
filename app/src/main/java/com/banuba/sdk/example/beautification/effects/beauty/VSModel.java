@@ -163,11 +163,11 @@ final class VSModel {
             noseData = (SettersFloatData) settersData.get(2);
         }
         setterList.add(new SeekBarFloatValueSetter(
-                "Face", ModelDataKeys.FACE_MORPH_FACE, valueListener, faceData));
+                "Face", ModelDataKeys.FACE_MORPH_FACE, valueListener, faceData, 0));
         setterList.add(new SeekBarFloatValueSetter(
-                "Eyes", ModelDataKeys.FACE_MORPH_EYES, valueListener, eyesData));
+                "Eyes", ModelDataKeys.FACE_MORPH_EYES, valueListener, eyesData, 1));
         setterList.add(new SeekBarFloatValueSetter(
-                "Nose", ModelDataKeys.FACE_MORPH_NOSE, valueListener, noseData));
+                "Nose", ModelDataKeys.FACE_MORPH_NOSE, valueListener, noseData, 2));
         return setterList;
     }
 
@@ -180,7 +180,7 @@ final class VSModel {
             color = (SettersRGBAData) settersData.get(1);
         }
         setterList.add(new SeekBarFloatValueSetter(
-                "Softness", ModelDataKeys.SKIN_SOFTENING, valueListener, softness));
+                "Softness", ModelDataKeys.SKIN_SOFTENING, valueListener, softness, 0));
         setterList.add(new SeekBarRgbaValueSetter(
                 "Color", ModelDataKeys.SKIN_COLOR, valueListener, color));
         return setterList;
@@ -197,11 +197,11 @@ final class VSModel {
             flare  = (SettersFloatData) settersData.get(2);
         }
         setterList.add(new SeekBarFloatValueSetter(
-                "Whitening", ModelDataKeys.EYES_WHITENING, valueListener, whitening));
+                "Whitening", ModelDataKeys.EYES_WHITENING, valueListener, whitening, 0));
         setterList.add(new SeekBarRgbaValueSetter(
                 "Color", ModelDataKeys.EYES_COLOR, valueListener, color));
         setterList.add(new SeekBarFloatValueSetter(
-                "Flare", ModelDataKeys.EYES_FLARE, valueListener, flare));
+                "Flare", ModelDataKeys.EYES_FLARE, valueListener, flare, 1));
         return setterList;
     }
 
@@ -391,7 +391,7 @@ final class VSModel {
             value = (SettersFloatData) settersData.get(0);
         }
         setterList.add(new SeekBarFloatValueSetter(
-                "Whitening", ModelDataKeys.TEETH_WHITENING, valueListener, value));
+                "Whitening", ModelDataKeys.TEETH_WHITENING, valueListener, value, 0));
         return setterList;
     }
 
@@ -402,7 +402,7 @@ final class VSModel {
             value = (SettersFloatData) settersData.get(0);
         }
         setterList.add(new SeekBarFloatValueSetter(
-                "Softlight", ModelDataKeys.SOFTLIGHT_STRENGTH, valueListener, value));
+                "Softlight", ModelDataKeys.SOFTLIGHT_STRENGTH, valueListener, value, 0));
         return setterList;
     }
 
@@ -415,7 +415,7 @@ final class VSModel {
             loadImage = (SettersFileNameData) settersData.get(1);
         }
         setterList.add(new SeekBarFloatValueSetter(
-                "Strength", ModelDataKeys.FILTER_STRENGTH, valueListener, strength));
+                "Strength", ModelDataKeys.FILTER_STRENGTH, valueListener, strength, 0));
         setterList.add(new LoadImageButtonValueSetter(
                 "Load an image", ModelDataKeys.FILTER_SET, valueListener, loadImage));
         return setterList;
