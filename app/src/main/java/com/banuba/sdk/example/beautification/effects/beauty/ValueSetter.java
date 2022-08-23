@@ -57,7 +57,7 @@ class LoadImageButtonValueSetter extends ValueSetter implements View.OnClickList
         super(displayName, parameterName, cb);
         if(data != null) {
             mFileName = data.mFileName;
-//            onSelectedFilePaths(new String[]{mFileName});
+            onSelectedFilePaths(new String[]{mFileName});
         }
     }
 
@@ -76,7 +76,7 @@ class LoadImageButtonValueSetter extends ValueSetter implements View.OnClickList
     @Override
     void addToViewGroup(LayoutInflater inflater, ViewGroup valuesParentView) {
         View view = inflater.inflate(R.layout.vsetter_image_load, valuesParentView, false);
-        View setter = view.findViewById(R.id.value_setter);
+        View setter = view.findViewById(R.id.load_image_setter);
         setView(setter);
         valuesParentView.addView(view);
     }
@@ -118,13 +118,15 @@ class SeekBarFloatValueSetter extends ValueSetter implements SeekBar.OnSeekBarCh
     final static protected int SCALE = 1000;
 
     protected SeekBar mView;
-    protected int myValue = 0;
+    protected int mValue = 0;
+    protected int mIndex;
 
-    SeekBarFloatValueSetter(String displayName, String parameterName, ModelDataListener cb, SettersFloatData data) {
+    SeekBarFloatValueSetter(String displayName, String parameterName, ModelDataListener cb, SettersFloatData data, int index) {
         super(displayName, parameterName, cb);
+        mIndex = index;
         if(data != null) {
-            myValue = data.mValue;
-            mValueListener.onSetterFloatValueChanged(getParameterName(), (float)myValue / SCALE);
+            mValue = data.mValue;
+            mValueListener.onSetterFloatValueChanged(getParameterName(), (float) mValue / SCALE);
         }
     }
 
@@ -135,9 +137,21 @@ class SeekBarFloatValueSetter extends ValueSetter implements SeekBar.OnSeekBarCh
         }
         mView = (SeekBar) view;
         if (mView != null) {
+            switch (mIndex) {
+                case 0:
+                    mView.setId(R.id.floatValueSetter0);
+                    break;
+                case 1:
+                    mView.setId(R.id.floatValueSetter1);
+                    break;
+                case 2:
+                    mView.setId(R.id.floatValueSetter2);
+                    break;
+            }
+
             mView.setMax(SCALE);
             mView.setOnSeekBarChangeListener(this);
-            mView.setProgress(myValue);
+            mView.setProgress(mValue);
         }
     }
 
@@ -155,13 +169,13 @@ class SeekBarFloatValueSetter extends ValueSetter implements SeekBar.OnSeekBarCh
 
     @Override
     SettersData getSettersData() {
-        return new SettersFloatData(myValue);
+        return new SettersFloatData(mValue);
     }
 
     @Override
-    public void onProgressChanged(SeekBar seekBar, int i, boolean b) {
-        myValue = i;
-        mValueListener.onSetterFloatValueChanged(getParameterName(), (float)myValue / SCALE);
+    public void onProgressChanged(SeekBar seekBar, int progressValue, boolean fromUser) {
+        mValue = progressValue;
+        mValueListener.onSetterFloatValueChanged(getParameterName(), (float) mValue / SCALE);
     }
 
     @Override
@@ -189,7 +203,9 @@ class SeekBarRgbaValueSetter extends ValueSetter implements ColorSeekBar.OnColor
             mColor = data.mColor;
             mAlphaBarPosition = data.mAlphaBarPosition;
             mIndex = data.mIndex;
-            onColorChangeListener(mColorBarPosition, mAlphaBarPosition, mColor);
+            if(mColor != 0) {
+                onColorChangeListener(mColorBarPosition, mAlphaBarPosition, mColor);
+            }
         }
     }
 
