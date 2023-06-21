@@ -16,15 +16,17 @@ import android.widget.Toast;
 
 import com.banuba.sdk.example.beautification.effects.EffectController;
 import com.banuba.sdk.example.beautification.effects.beauty.ModelDataListener;
-import com.banuba.sdk.effect_player.Effect;
 import com.banuba.sdk.example.beautification.effects.beauty.SettersData.SettersData;
+import com.banuba.sdk.input.CameraDevice;
+import com.banuba.sdk.input.CameraInput;
 import com.banuba.sdk.manager.BanubaSdkManager;
+import com.banuba.sdk.output.SurfaceOutput;
+import com.banuba.sdk.player.Player;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
-import java.util.Objects;
 
 class MyColor {
     public float r;
@@ -52,8 +54,11 @@ public class MainActivity extends AppCompatActivity implements ModelDataListener
     private static final String QUOTE = "\"";
 
     private EffectController mEffectController = null;
-    private BanubaSdkManager mSdkManager = null;
-    private Effect mCurrentEffect;
+
+    private Player mPlayer;
+    private SurfaceOutput mSurfaceOutput;
+    private CameraDevice mCameraDevice;
+
     private HashMap<String, MyColor[]> mHairColorMap;
     static final String ACTIVE_GROUP_INDEX = "activeGroupIndex";
     static final int DEFAULT_ACTIVE_GROUP_INDEX = 0;
@@ -77,23 +82,30 @@ public class MainActivity extends AppCompatActivity implements ModelDataListener
             }
         }
 
-        requestCameraPermission();
         requestWriteStoragePermission();
 
         setContentView(R.layout.activity_main);
 
-        final SurfaceView sv = findViewById(R.id.effect_view);
-
         BanubaSdkManager.initialize(this, BanubaClientToken.KEY);
-        mSdkManager = new BanubaSdkManager(this);
-        mSdkManager.attachSurface(sv);
+
+        final SurfaceView surfaceView = findViewById(R.id.effect_view);
+        mPlayer = new Player();
+        mSurfaceOutput = new SurfaceOutput(surfaceView.getHolder());
+        mPlayer.use(mSurfaceOutput);
+        mPlayer.loadAsync("effects/Makeup");
 
         final RecyclerView effectItemView = findViewById(R.id.effect_selector_view);
         final ViewGroup effectValuesView = findViewById(R.id.effect_parameters_view);
-        mCurrentEffect = mSdkManager.loadEffect(BanubaSdkManager.getResourcesBase() + "/effects/Makeup", false);
-        mEffectController = new EffectController(effectItemView, effectValuesView, this, settersData);
 
-        loadEffect("Makeup", activeGroupIndex);
+        mEffectController = new EffectController(effectItemView, effectValuesView, this, settersData);
+        mEffectController.onEffectChanged("Makeup", activeGroupIndex);
+
+        if (isCameraPermissionGranted()) {
+            startCameraPreview();
+        } else {
+            ActivityCompat.requestPermissions(this, new String[] {Manifest.permission.CAMERA},
+                    REQUEST_CODE_CAMERA_PERMISSION);
+        }
     }
 
     private boolean isCameraPermissionGranted() {
@@ -102,13 +114,6 @@ public class MainActivity extends AppCompatActivity implements ModelDataListener
                 == PackageManager.PERMISSION_GRANTED;
         } else {
             return true;
-        }
-    }
-
-    private void requestCameraPermission() {
-        if (!isCameraPermissionGranted()) {
-            ActivityCompat.requestPermissions(
-                this, new String[] {Manifest.permission.CAMERA}, REQUEST_CODE_CAMERA_PERMISSION);
         }
     }
 
@@ -138,7 +143,7 @@ public class MainActivity extends AppCompatActivity implements ModelDataListener
             case REQUEST_CODE_CAMERA_PERMISSION:
                 final boolean resultCamera = isCameraPermissionGranted();
                 if (resultCamera) {
-                    mSdkManager.openCamera();
+                    startCameraPreview();
                 } else {
                     Toast.makeText(this, "No camera permissions", Toast.LENGTH_LONG).show();
                 }
@@ -152,25 +157,31 @@ public class MainActivity extends AppCompatActivity implements ModelDataListener
         }
     }
 
+    public void startCameraPreview() {
+        mCameraDevice = new CameraDevice(this, MainActivity.this);
+        mCameraDevice.start();
+        mPlayer.use(new CameraInput(mCameraDevice));
+    }
+
     @Override
     public void onSetterLoadImage(String key, String path) {
-        mCurrentEffect.evalJs(makeJsMethod(key, "'" + path + "'"), null);
+        mPlayer.evalJs(makeJsMethod(key, "'" + path + "'"), null);
     }
 
     @Override
     public void onSetterEvent(String key) {
-        mCurrentEffect.evalJs(makeJsMethod(key, null), null);
+        mPlayer.evalJs(makeJsMethod(key, null), null);
     }
 
     @Override
     public void onSetterFloatValueChanged(String key, float value) {
-        mCurrentEffect.evalJs(makeJsMethod(key, Float.toString(value)), null);
+        mPlayer.evalJs(makeJsMethod(key, Float.toString(value)), null);
     }
 
     @Override
     public void onSetterRgbaValueChanged(String key, float r, float g, float b, float a) {
         String arg = rgbaToString(r, g, b, a);
-        mCurrentEffect.evalJs(makeJsMethod(key, arg), null);
+        mPlayer.evalJs(makeJsMethod(key, arg), null);
     }
 
     @Override
@@ -204,39 +215,28 @@ public class MainActivity extends AppCompatActivity implements ModelDataListener
         if (!args.isEmpty()) {
             arg = args.toString();
         }
-        mCurrentEffect.evalJs(makeJsMethod(key, arg), null);
+        mPlayer.evalJs(makeJsMethod(key, arg), null);
     }
 
     @Override
     protected void onPause() {
         super.onPause();
-        Objects.requireNonNull(mSdkManager.getEffectPlayer()).playbackPause();
-    }
-
-    @Override
-    protected void onStart() {
-        super.onStart();
-        mSdkManager.openCamera();
+        mPlayer.pause();
     }
 
     @Override
     protected void onResume() {
         super.onResume();
-        Objects.requireNonNull(mSdkManager.getEffectPlayer()).playbackPlay();
-    }
-
-    @Override
-    protected void onStop() {
-        super.onStop();
-        mSdkManager.closeCamera();
+        mPlayer.play();
     }
 
     @Override
     protected void onDestroy() {
-        mCurrentEffect = null;
-        if (mSdkManager != null) {
-            mSdkManager.releaseSurface();
+        if (mCameraDevice != null) {
+            mCameraDevice.close();
         }
+        mPlayer.close();
+        mSurfaceOutput.close();
         super.onDestroy();
     }
 
@@ -246,11 +246,6 @@ public class MainActivity extends AppCompatActivity implements ModelDataListener
 
     private String makeJsMethod(String method, String params) {
         return method + (params == null ? "()" : "(" + params + ")");
-    }
-
-    private void loadEffect(String effect, int activeGroupIndex) {
-
-        mEffectController.onEffectChanged(effect, activeGroupIndex);
     }
 
     private int getActiveGroupIndex() {
