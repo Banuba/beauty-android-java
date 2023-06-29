@@ -139,17 +139,16 @@ public class MainActivity extends AppCompatActivity implements ModelDataListener
     @Override
     public void onRequestPermissionsResult(
         int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        final boolean isGranted = PackageManager.PERMISSION_GRANTED == grantResults[0];
         switch (requestCode) {
             case REQUEST_CODE_CAMERA_PERMISSION:
-                final boolean resultCamera = isCameraPermissionGranted();
-                if (resultCamera) {
+                if (isGranted) {
                     startCameraPreview();
                 } else {
                     Toast.makeText(this, "No camera permissions", Toast.LENGTH_LONG).show();
                 }
             case REQUEST_WRITE_STORAGE_PERMISSION:
-                final boolean resultStorage = isStoragePermissionGranted();
-                if (!resultStorage) {
+                if (!isGranted) {
                     Toast.makeText(this, "No storage permissions", Toast.LENGTH_LONG).show();
                 }
             default:
