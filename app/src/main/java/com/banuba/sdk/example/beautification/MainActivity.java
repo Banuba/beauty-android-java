@@ -217,8 +217,7 @@ public class MainActivity extends AppCompatActivity {
                     // call coloring with a gradient of up to five colors
                     makeupApi.getJsBuilder().color(coloring, colors, length == 0 ? 1 : length).call();
                 } else {
-                    final int hash = coloring.hashCode();
-                    viewModel.setValue(hash, colorWithAlpha);
+                    viewModel.setValue(coloring.hashCode(), colorWithAlpha);
 
                     // call coloring with only one color
                     makeupApi.getJsBuilder().color(coloring, colorWithAlpha).call();
@@ -250,7 +249,7 @@ public class MainActivity extends AppCompatActivity {
 
                 fiveColorsGroup.setVisibility(View.VISIBLE);
             } else {
-                final int color = viewModel.getValue(Objects.hash(coloring, fiveColors[0]));
+                final int color = viewModel.getValue(coloring.hashCode());
                 colorSelector.setAlphaBarPosition(0xff - Color.alpha(color));
                 colorSelector.setColor(color);
 
