@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<TextView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/text"
+    android:singleLine="true"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:paddingVertical="@dimen/spiner_item_padding_vertical"
+    android:paddingHorizontal="@dimen/spiner_item_padding_horizontal"
+    android:textSize="@dimen/spiner_item_text_size"
+    android:ellipsize="marquee"
+    android:textAlignment="center"/>

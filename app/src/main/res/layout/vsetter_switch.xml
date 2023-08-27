@@ -1,9 +1,0 @@
-<?xml version="1.0" encoding="utf-8"?>
-<Switch xmlns:android="http://schemas.android.com/apk/res/android"
-
-    android:id="@+id/value_setter"
-    android:layout_width="wrap_content"
-    android:layout_height="@dimen/vsetter_height"
-    android:layout_gravity="fill_horizontal|center_vertical"
-    android:tag="value_switch"
-    />

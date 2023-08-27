@@ -1,4 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <dimen name="vsetter_height">45dp</dimen>
+    <dimen name="spiner_item_padding_vertical">10dp</dimen>
+    <dimen name="spiner_item_padding_horizontal">18dp</dimen>
+    <dimen name="spiner_item_text_size">20sp</dimen>
+    <dimen name="spiner_margin_bottom">12dp</dimen>
+    <dimen name="value_setter_margin">12dp</dimen>
+    <dimen name="action_button_margin">12dp</dimen>
+    <dimen name="action_button_padding_horizontal">18dp</dimen>
+    <dimen name="action_button_padding_vectical">12dp</dimen>
+    <dimen name="color_circle_size">48dp</dimen>
+    <dimen name="color_circle_margin_horizontal">12dp</dimen>
 </resources>

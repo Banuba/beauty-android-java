@@ -2,272 +2,338 @@ package com.banuba.sdk.example.beautification;
 
 import android.Manifest;
 import android.content.pm.PackageManager;
+import android.graphics.Color;
+import android.graphics.drawable.GradientDrawable;
 import android.os.Build;
 import android.os.Bundle;
 import androidx.annotation.NonNull;
 import androidx.core.app.ActivityCompat;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.lifecycle.ViewModelProviders;
+import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-import android.os.Parcelable;
 import android.view.SurfaceView;
-import android.view.ViewGroup;
+import android.view.View;
+import android.widget.Button;
+import android.widget.LinearLayout;
+import android.widget.SeekBar;
+import android.widget.TextView;
 import android.widget.Toast;
 
-import com.banuba.sdk.example.beautification.effects.EffectController;
-import com.banuba.sdk.example.beautification.effects.beauty.ModelDataListener;
-import com.banuba.sdk.example.beautification.effects.beauty.SettersData.SettersData;
+import com.banuba.sdk.example.beautification.adapters.StringListAdapter;
+import com.banuba.sdk.example.beautification.data.DataRepository;
+import com.banuba.sdk.example.beautification.makeup.MakeupApi;
 import com.banuba.sdk.input.CameraDevice;
 import com.banuba.sdk.input.CameraInput;
-import com.banuba.sdk.manager.BanubaSdkManager;
 import com.banuba.sdk.output.SurfaceOutput;
 import com.banuba.sdk.player.Player;
+import com.rtugeek.android.colorseekbar.ColorSeekBar;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Locale;
-import java.util.Map;
+import java.util.List;
+import java.util.Objects;
 
-class MyColor {
-    public float r;
-    public float g;
-    public float b;
-    public float a;
-    public boolean used;
+public class MainActivity extends AppCompatActivity {
+    private static final int REQUEST_CAMERA = 1234;
 
-    public MyColor() {
-        set(0.0f, 0.0f, 0.0f, 0.0f);
-    }
+    private CameraDevice cameraDevice; // The player receives frames from this camera
+    private SurfaceOutput surfaceOutput; // The player renders the image to here
+    private final Player player = new Player(); // The banuba sdk player
+    private final MakeupApi makeupApi = new MakeupApi(js -> player.evalJs(js, null)); // Makeup Effect API with callback
 
-    public void set(float r, float g, float b, float a) {
-        this.r = r;
-        this.g = g;
-        this.b = b;
-        this.a = a;
-        used = a > 0.01f;
-    }
-}
+    private RecyclerView groupsListView;
+    private RecyclerView sectionsListView;
+    private ColorSeekBar colorSelector;
+    private SeekBar valueSetter;
+    private Button actionButton;
+    private LinearLayout fiveColorsGroup;
+    private TextView[] fiveColors;
 
-public class MainActivity extends AppCompatActivity implements ModelDataListener {
-    private static final int REQUEST_CODE_CAMERA_PERMISSION = 10072;
-    private static final int REQUEST_WRITE_STORAGE_PERMISSION = 112;
-    private static final String QUOTE = "\"";
+    private MainActivityViewModel viewModel;
 
-    private EffectController mEffectController = null;
-
-    private Player mPlayer;
-    private SurfaceOutput mSurfaceOutput;
-    private CameraDevice mCameraDevice;
-
-    private HashMap<String, MyColor[]> mHairColorMap;
-    static final String ACTIVE_GROUP_INDEX = "activeGroupIndex";
-    static final int DEFAULT_ACTIVE_GROUP_INDEX = 0;
-    static final String GROUPS_NAMES_LIST = "groupsNamesList";
+    private int indexOfFiveColors = 0;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        int activeGroupIndex = DEFAULT_ACTIVE_GROUP_INDEX;
-        ArrayList<String> groupsNames;
-        HashMap<String, ArrayList<Parcelable>> settersData = null;
-        if (savedInstanceState != null) {
-            // Restore value of members from saved state
-            activeGroupIndex = savedInstanceState.getInt(ACTIVE_GROUP_INDEX);
-            groupsNames = savedInstanceState.getStringArrayList(GROUPS_NAMES_LIST);
-            settersData = new HashMap<>();
-            for(String name : groupsNames) {
-                ArrayList<Parcelable> currentSettersData =
-                        savedInstanceState.getParcelableArrayList(name);
-                settersData.put(name, currentSettersData);
-            }
-        }
-
-        requestWriteStoragePermission();
-
         setContentView(R.layout.activity_main);
 
-        BanubaSdkManager.initialize(this, BanubaClientToken.KEY);
-
-        final SurfaceView surfaceView = findViewById(R.id.effect_view);
-        mPlayer = new Player();
-        mSurfaceOutput = new SurfaceOutput(surfaceView.getHolder());
-        mPlayer.use(mSurfaceOutput);
-        mPlayer.loadAsync("effects/Makeup");
-
-        final RecyclerView effectItemView = findViewById(R.id.effect_selector_view);
-        final ViewGroup effectValuesView = findViewById(R.id.effect_parameters_view);
-
-        mEffectController = new EffectController(effectItemView, effectValuesView, this, settersData);
-        mEffectController.onEffectChanged("Makeup", activeGroupIndex);
+        initViews();
+        initPlayer();
+        observeData();
 
         if (isCameraPermissionGranted()) {
-            startCameraPreview();
+            cameraDevice.start();
         } else {
-            ActivityCompat.requestPermissions(this, new String[] {Manifest.permission.CAMERA},
-                    REQUEST_CODE_CAMERA_PERMISSION);
+            ActivityCompat.requestPermissions(this, new String[] {Manifest.permission.CAMERA}, REQUEST_CAMERA);
         }
     }
 
     private boolean isCameraPermissionGranted() {
-        if (Build.VERSION.SDK_INT >= 23) {
-            return checkSelfPermission(Manifest.permission.CAMERA)
-                == PackageManager.PERMISSION_GRANTED;
-        } else {
-            return true;
-        }
-    }
-
-    private boolean isStoragePermissionGranted() {
-        if (Build.VERSION.SDK_INT >= 23) {
-            return checkSelfPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE)
-                == PackageManager.PERMISSION_GRANTED;
-        } else {
-            return true;
-        }
-    }
-
-    private void requestWriteStoragePermission() {
-        boolean permissionGranted = isStoragePermissionGranted();
-        if (!permissionGranted) {
-            ActivityCompat.requestPermissions(
-                this,
-                new String[] {Manifest.permission.WRITE_EXTERNAL_STORAGE},
-                REQUEST_WRITE_STORAGE_PERMISSION);
-        }
+        return Build.VERSION.SDK_INT < 23
+                || checkSelfPermission(Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED;
     }
 
     @Override
-    public void onRequestPermissionsResult(
-        int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
-        final boolean isGranted = PackageManager.PERMISSION_GRANTED == grantResults[0];
-        switch (requestCode) {
-            case REQUEST_CODE_CAMERA_PERMISSION:
-                if (isGranted) {
-                    startCameraPreview();
-                } else {
-                    Toast.makeText(this, "No camera permissions", Toast.LENGTH_LONG).show();
-                }
-            case REQUEST_WRITE_STORAGE_PERMISSION:
-                if (!isGranted) {
-                    Toast.makeText(this, "No storage permissions", Toast.LENGTH_LONG).show();
-                }
-            default:
-                super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-        }
-    }
-
-    public void startCameraPreview() {
-        mCameraDevice = new CameraDevice(this, MainActivity.this);
-        mCameraDevice.start();
-        mPlayer.use(new CameraInput(mCameraDevice));
-    }
-
-    @Override
-    public void onSetterLoadImage(String key, String path) {
-        mPlayer.evalJs(makeJsMethod(key, "'" + path + "'"), null);
-    }
-
-    @Override
-    public void onSetterEvent(String key) {
-        mPlayer.evalJs(makeJsMethod(key, null), null);
-    }
-
-    @Override
-    public void onSetterFloatValueChanged(String key, float value) {
-        mPlayer.evalJs(makeJsMethod(key, Float.toString(value)), null);
-    }
-
-    @Override
-    public void onSetterRgbaValueChanged(String key, float r, float g, float b, float a) {
-        String arg = rgbaToString(r, g, b, a);
-        mPlayer.evalJs(makeJsMethod(key, arg), null);
-    }
-
-    @Override
-    public void onSetterRgbaMultipleColorsValueChanged(String key, float r, float g, float b, float a, int index) {
-        if (index < 0 || index > 4) {
-            throw new IllegalArgumentException("Invalid index: " + index);
-        }
-
-        if (mHairColorMap == null) {
-            mHairColorMap = new HashMap<String, MyColor[]>();
-        }
-
-        if (!mHairColorMap.containsKey(key)) {
-            mHairColorMap.put(key, new MyColor[] {
-                new MyColor(), new MyColor(), new MyColor(), new MyColor(), new MyColor()
-            });
-        }
-
-        MyColor[] colors = mHairColorMap.get(key);
-        colors[index].set(r, g, b, a);
-
-        ArrayList<String> args = new ArrayList<String>();
-        for (MyColor cl: colors) {
-            if (cl.used) {
-                String arg = rgbaToString(cl.r, cl.g, cl.b, cl.a);
-                args.add(arg);
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        if (requestCode == REQUEST_CAMERA) {
+            if (PackageManager.PERMISSION_GRANTED == grantResults[0]) {
+                cameraDevice.start();
+            } else {
+                Toast.makeText(this, "No camera permissions", Toast.LENGTH_LONG).show();
             }
         }
-
-        String arg = rgbaToString(0.0f, 0.0f, 0.0f, 0.0f);
-        if (!args.isEmpty()) {
-            arg = args.toString();
-        }
-        mPlayer.evalJs(makeJsMethod(key, arg), null);
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
     }
 
     @Override
     protected void onPause() {
         super.onPause();
-        mPlayer.pause();
+        player.pause();
     }
 
     @Override
     protected void onResume() {
         super.onResume();
-        mPlayer.play();
+        player.play();
     }
 
     @Override
     protected void onDestroy() {
-        if (mCameraDevice != null) {
-            mCameraDevice.close();
-        }
-        mPlayer.close();
-        mSurfaceOutput.close();
+        player.close();
+        surfaceOutput.close();
         super.onDestroy();
     }
 
-    private String rgbaToString(float r, float g, float b, float a) {
-        return String.format(Locale.US, "'%f %f %f %f'", r, g, b, a);
+    private void initViews() {
+        groupsListView = findViewById(R.id.groupView);
+        groupsListView.setLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false));
+
+        sectionsListView = findViewById(R.id.sectionView);
+        sectionsListView.setLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false));
+
+        colorSelector = findViewById(R.id.colorSelector);
+
+        valueSetter = findViewById(R.id.valueSetter);
+
+        actionButton = findViewById(R.id.actionButton);
+
+        fiveColorsGroup = findViewById(R.id.fiveColorsGroup);
+        fiveColors = new TextView[] {
+            findViewById(R.id.color1),
+            findViewById(R.id.color2),
+            findViewById(R.id.color3),
+            findViewById(R.id.color4),
+            findViewById(R.id.color5)
+        };
     }
 
-    private String makeJsMethod(String method, String params) {
-        return method + (params == null ? "()" : "(" + params + ")");
+    private void initPlayer() {
+        // initialize the input
+        cameraDevice = new CameraDevice(this, MainActivity.this);
+        final CameraInput cameraInput = new CameraInput(cameraDevice);
+
+        // initialize the output
+        final SurfaceView effectView = findViewById(R.id.effectView);
+        surfaceOutput = new SurfaceOutput(effectView.getHolder());
+
+        // use input from the front camera and output to the surface
+        player.use(cameraInput, surfaceOutput);
+        player.loadAsync("effects/Makeup");
     }
 
-    private int getActiveGroupIndex() {
-        return mEffectController.getActiveGroupIndex();
+    private void observeData() {
+        viewModel = ViewModelProviders.of(this).get(MainActivityViewModel.class);
+
+        viewModel.getGroupListLiveData().observe(MainActivity.this, this::prepareUiForGroups);
+
+        viewModel.getSectionListLiveData().observe(MainActivity.this, this::prepareUiForSections);
+
+        viewModel.getSectionLiveData().observe(MainActivity.this, section -> {
+            prepareUiForColoring(section);
+            prepareUiForBeautyOrMorphing(section);
+            prepareUiForClearing(section);
+        });
     }
 
-    private HashMap<String, ArrayList<SettersData>>  getSettersData() {
-        return mEffectController.getSettersData();
-    }
+    private void prepareUiForGroups(List<DataRepository.Group> groupList) {
+        if (groupList != null) {
+            final List<String> strings = DataRepository.makeStringListFromGroupList(groupList);
+            final StringListAdapter adapter = new StringListAdapter(strings, viewModel::setCurrentGroupIndex);
+            adapter.setSelectedItemIndex(viewModel.getCurrentGroupIndex());
 
-    @Override
-    public void onSaveInstanceState(Bundle savedInstanceState) {
-        savedInstanceState.putInt(ACTIVE_GROUP_INDEX, getActiveGroupIndex());
-        ArrayList<String> groupsNames = new ArrayList<>();
-        HashMap<String, ArrayList<SettersData>>  settersData = getSettersData();
-        for(Map.Entry<String, ArrayList<SettersData>> entry : settersData.entrySet()) {
-            String name = entry.getKey();
-            ArrayList<SettersData> currentSettersData = entry.getValue();
-            savedInstanceState.putParcelableArrayList(name, currentSettersData);
-            groupsNames.add(name);
+            groupsListView.setAdapter(adapter);
+            groupsListView.scrollToPosition(viewModel.getCurrentGroupIndex());
+            groupsListView.setVisibility(View.VISIBLE);
+        } else {
+            groupsListView.setVisibility(View.GONE);
         }
-        savedInstanceState.putStringArrayList(GROUPS_NAMES_LIST, groupsNames);
-        // Always call the superclass so it can save the view hierarchy state
-        super.onSaveInstanceState(savedInstanceState);
+    }
+
+    private void prepareUiForSections(List<DataRepository.Section> sectionList) {
+        if (sectionList != null) {
+            if (sectionList.size() > 1) {
+                final List<String> strings = DataRepository.makeStringListFromSectionList(sectionList);
+                final StringListAdapter adapter = new StringListAdapter(strings, viewModel::setCurrentSectionIndex);
+                adapter.setSelectedItemIndex(viewModel.getCurrentSectionIndex());
+
+                sectionsListView.setAdapter(adapter);
+                sectionsListView.scrollToPosition(viewModel.getCurrentSectionIndex());
+
+                sectionsListView.setVisibility(View.VISIBLE);
+            } else {
+                viewModel.setCurrentSectionIndex(0);
+                sectionsListView.setVisibility(View.GONE);
+            }
+        } else {
+            sectionsListView.setVisibility(View.GONE);
+        }
+    }
+
+    private void prepareUiForColoring(DataRepository.Section section) {
+        if (section != null && section.coloring != null) {
+            indexOfFiveColors = 0;
+
+            final MakeupApi.ColoringApi coloring = section.coloring;
+            final boolean upToFiveColors = coloring.upToFiveColors();
+
+            colorSelector.setOnColorChangeListener((colorBarPosition, alphaBarPosition, colorWithAlpha) -> {
+                if (upToFiveColors) {
+                    // apply changes to five colors ui and call js method
+                    applyColorToFiveColorsUi(colorWithAlpha, indexOfFiveColors);
+                    final int hashOfCurrentColor = Objects.hash(coloring, fiveColors[indexOfFiveColors]);
+                    viewModel.setValue(hashOfCurrentColor, colorWithAlpha);
+
+                    final int[] colors = new int[] {0, 0, 0, 0, 0};
+                    int length = 0;
+                    for (int i = 0; i < 5; i++) {
+                        final int hash = Objects.hash(coloring, fiveColors[i]);
+                        final int color = viewModel.getValue(hash);
+                        if (Color.alpha(color) != 0) {
+                            colors[length++] = color;
+                        }
+                    }
+
+                    // call coloring with a gradient of up to five colors
+                    makeupApi.getJsBuilder().color(coloring, colors, length == 0 ? 1 : length).call();
+                } else {
+                    final int hash = coloring.hashCode();
+                    viewModel.setValue(hash, colorWithAlpha);
+
+                    // call coloring with only one color
+                    makeupApi.getJsBuilder().color(coloring, colorWithAlpha).call();
+                }
+            });
+
+            if (upToFiveColors) {
+                // initialize ui with five colors
+                for (int i = 0; i < 5; i++) {
+                    final TextView view = fiveColors[i];
+                    final int hash = Objects.hash(coloring, view);
+
+                    final int index = i;
+                    view.setOnClickListener(v -> {
+                        final int color = viewModel.getValue(hash);
+                        indexOfFiveColors = index;
+                        applyColorToFiveColorsUi(color, index);
+                        colorSelector.setAlphaBarPosition(0xff - Color.alpha(color));
+                        colorSelector.setColor(color);
+                    });
+
+                    final int initialColor = viewModel.getValue(hash);
+                    applyColorToFiveColorsUi(initialColor, i);
+                    if (i == indexOfFiveColors) {
+                        colorSelector.setAlphaBarPosition(0xff - Color.alpha(initialColor));
+                        colorSelector.setColor(initialColor);
+                    }
+                }
+
+                fiveColorsGroup.setVisibility(View.VISIBLE);
+            } else {
+                final int color = viewModel.getValue(Objects.hash(coloring, fiveColors[0]));
+                colorSelector.setAlphaBarPosition(0xff - Color.alpha(color));
+                colorSelector.setColor(color);
+
+                fiveColorsGroup.setVisibility(View.GONE);
+            }
+
+            colorSelector.setVisibility(View.VISIBLE);
+        } else {
+            colorSelector.setOnColorChangeListener(null);
+            colorSelector.setVisibility(View.GONE);
+            fiveColorsGroup.setVisibility(View.GONE);
+        }
+    }
+
+    private void prepareUiForBeautyOrMorphing(DataRepository.Section section) {
+        if (section != null && (section.beauty != null || section.morphing != null)) {
+            final MakeupApi.BeautyApi beauty = section.beauty;
+            final MakeupApi.MorphApi morph = section.morphing;
+
+            final int hash = beauty != null ? beauty.hashCode() : morph.hashCode();
+            final float min = morph != null ? morph.min() : 0.0f;
+            final float max = morph != null ? morph.max() : 1.0f;
+
+            valueSetter.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+                @Override
+                public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+                    viewModel.setValue(hash, progress);
+                    float value = toRange(0.0f, valueSetter.getMax(), progress, min, max);
+                    // call any beauty or morph method
+                    if (beauty != null) {
+                        makeupApi.getJsBuilder().beauty(beauty, value).call();
+                    } else {
+                        makeupApi.getJsBuilder().morph(morph, value).call();
+                    }
+                }
+
+                @Override
+                public void onStartTrackingTouch(SeekBar seekBar) {
+                }
+
+                @Override
+                public void onStopTrackingTouch(SeekBar seekBar) {
+                }
+            });
+
+            final int defaultValue = (int) toRange(min, max, 0.0f, 0.0f, valueSetter.getMax());
+            valueSetter.setProgress(viewModel.getValue(hash, defaultValue));
+
+            valueSetter.setVisibility(View.VISIBLE);
+        } else {
+            valueSetter.setOnSeekBarChangeListener(null);
+            valueSetter.setVisibility(View.GONE);
+        }
+    }
+
+    private void prepareUiForClearing(DataRepository.Section section) {
+        if (section != null && section.clearing != null) {
+            actionButton.setOnClickListener(view -> {
+                // call clear method
+                makeupApi.getJsBuilder().clear(section.clearing).call();
+                viewModel.clearValues();
+            });
+            actionButton.setText(section.text);
+            actionButton.setVisibility(View.VISIBLE);
+        } else {
+            actionButton.setVisibility(View.GONE);
+        }
+    }
+
+    private void applyColorToFiveColorsUi(int color, int indexOfCurentColorUi) {
+        final TextView view = fiveColors[indexOfCurentColorUi];
+        final GradientDrawable drawable = (GradientDrawable) view.getBackground();
+        int invColor = Color.argb(255, 255 - Color.red(color), 255 - Color.green(color), 255 - Color.blue(color));
+        drawable.setColor(color);
+        view.setTextColor(invColor);
+
+        for (int i = 0; i < 5; i++) {
+            final GradientDrawable borderDrawable = (GradientDrawable) fiveColors[i].getBackground();
+            borderDrawable.setStroke(5, i == indexOfFiveColors ? 0xFFFF9800 : 0xFFFFFFFF);
+        }
+    }
+
+    private float toRange(float inMin, float inMax, float inVal, float outMin, float outMax) {
+        return (outMax - outMin) * (inVal - inMin) / (inMax - inMin) + outMin;
     }
 }
