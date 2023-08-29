@@ -135,6 +135,21 @@ public class MakeupApi {
         }
     }
 
+    public enum FilterApi {
+        SET,      // string value (path)
+        STRENGTH; // float value
+
+        private final String mMethodName;
+
+        FilterApi() {
+            mMethodName = "Filter." + name().toLowerCase();
+        }
+
+        public String methodName() {
+            return mMethodName;
+        }
+    }
+
     public enum ClearingApi {
         ALL,
         SOFTLIGHT,
@@ -164,11 +179,11 @@ public class MakeupApi {
     }
 
     public final class JsBuilder {
-        public JsBuilder color(ColoringApi method, int color) {
-            return color(method, new int[] {color}, 1);
+        public JsBuilder set(ColoringApi method, int color) {
+            return set(method, new int[] {color}, 1);
         }
 
-        public JsBuilder color(ColoringApi method, int[] colors, int len) {
+        public JsBuilder set(ColoringApi method, int[] colors, int len) {
             mStringBuilder
                 .append(method.methodName())
                 .append("(");
@@ -197,7 +212,7 @@ public class MakeupApi {
             return this;
         }
 
-        public JsBuilder beauty(BeautyApi method, float value) {
+        public JsBuilder set(BeautyApi method, float value) {
             mStringBuilder
                 .append(method.methodName())
                 .append("(")
@@ -206,7 +221,7 @@ public class MakeupApi {
             return this;
         }
 
-        public JsBuilder morph(MorphApi morph, float value) {
+        public JsBuilder set(MorphApi morph, float value) {
             mStringBuilder
                 .append(morph.methodName())
                 .append("({")
@@ -214,6 +229,30 @@ public class MakeupApi {
                 .append(":")
                 .append(value)
                 .append("});\n");
+            return this;
+        }
+
+        public JsBuilder set(FilterApi filter, String path) {
+            if (filter != FilterApi.SET) {
+                throw new RuntimeException("The " + filter.methodName() + " takes only a path as input.");
+            }
+            mStringBuilder
+                .append(filter.methodName())
+                .append("(\"")
+                .append(path)
+                .append("\");\n");
+            return this;
+        }
+
+        public JsBuilder set(FilterApi filter, float value) {
+            if (filter != FilterApi.STRENGTH) {
+                throw new RuntimeException("The " + filter.methodName() + " takes only a float as input.");
+            }
+            mStringBuilder
+                .append(filter.methodName())
+                .append("(")
+                .append(value)
+                .append(");\n");
             return this;
         }
 

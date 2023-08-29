@@ -13,6 +13,7 @@ import androidx.lifecycle.ViewModelProviders;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import android.util.Log;
 import android.view.SurfaceView;
 import android.view.View;
 import android.widget.Button;
@@ -39,7 +40,10 @@ public class MainActivity extends AppCompatActivity {
     private CameraDevice cameraDevice; // The player receives frames from this camera
     private SurfaceOutput surfaceOutput; // The player renders the image to here
     private final Player player = new Player(); // The banuba sdk player
-    private final MakeupApi makeupApi = new MakeupApi(js -> player.evalJs(js, null)); // Makeup Effect API with callback
+    private final MakeupApi makeupApi = new MakeupApi(js -> {
+        player.evalJs(js, null);
+        Log.i("JS_CALL", js);
+    }); // Makeup Effect API with callback
 
     private RecyclerView groupsListView;
     private RecyclerView sectionsListView;
@@ -151,7 +155,7 @@ public class MainActivity extends AppCompatActivity {
 
         viewModel.getSectionLiveData().observe(MainActivity.this, section -> {
             prepareUiForColoring(section);
-            prepareUiForBeautyOrMorphing(section);
+            prepareUiForBeautyOrMorphingOrLut(section);
             prepareUiForClearing(section);
         });
     }
@@ -215,12 +219,12 @@ public class MainActivity extends AppCompatActivity {
                     }
 
                     // call coloring with a gradient of up to five colors
-                    makeupApi.getJsBuilder().color(coloring, colors, length == 0 ? 1 : length).call();
+                    makeupApi.getJsBuilder().set(coloring, colors, length == 0 ? 1 : length).call();
                 } else {
                     viewModel.setValue(coloring.hashCode(), colorWithAlpha);
 
                     // call coloring with only one color
-                    makeupApi.getJsBuilder().color(coloring, colorWithAlpha).call();
+                    makeupApi.getJsBuilder().set(coloring, colorWithAlpha).call();
                 }
             });
 
@@ -264,12 +268,14 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    private void prepareUiForBeautyOrMorphing(DataRepository.Section section) {
-        if (section != null && (section.beauty != null || section.morphing != null)) {
+    private void prepareUiForBeautyOrMorphingOrLut(DataRepository.Section section) {
+        if (section != null && (section.beauty != null || section.morphing != null || section.filter != null)) {
             final MakeupApi.BeautyApi beauty = section.beauty;
             final MakeupApi.MorphApi morph = section.morphing;
+            final MakeupApi.FilterApi filter = section.filter;
+            final String filterLutPath = section.path;
 
-            final int hash = beauty != null ? beauty.hashCode() : morph.hashCode();
+            final int hash = beauty != null ? beauty.hashCode() : morph != null ? morph.hashCode() : filterLutPath.hashCode();
             final float min = morph != null ? morph.min() : 0.0f;
             final float max = morph != null ? morph.max() : 1.0f;
 
@@ -280,9 +286,11 @@ public class MainActivity extends AppCompatActivity {
                     float value = toRange(0.0f, valueSetter.getMax(), progress, min, max);
                     // call any beauty or morph method
                     if (beauty != null) {
-                        makeupApi.getJsBuilder().beauty(beauty, value).call();
-                    } else {
-                        makeupApi.getJsBuilder().morph(morph, value).call();
+                        makeupApi.getJsBuilder().set(beauty, value).call();
+                    } else if (morph != null) {
+                        makeupApi.getJsBuilder().set(morph, value).call();
+                    } else { // filter
+                        makeupApi.getJsBuilder().set(MakeupApi.FilterApi.STRENGTH, value).call();
                     }
                 }
 
@@ -295,12 +303,21 @@ public class MainActivity extends AppCompatActivity {
                 }
             });
 
+            if (filter != null) {
+                makeupApi.getJsBuilder().set(filter, filterLutPath).call();
+            }
+
             final int defaultValue = (int) toRange(min, max, 0.0f, 0.0f, valueSetter.getMax());
             valueSetter.setProgress(viewModel.getValue(hash, defaultValue));
 
-            valueSetter.setVisibility(View.VISIBLE);
+            if (filter != null && filterLutPath.equals("")) {
+                valueSetter.setVisibility(View.GONE);
+            } else {
+                valueSetter.setVisibility(View.VISIBLE);
+            }
         } else {
             valueSetter.setOnSeekBarChangeListener(null);
+            valueSetter.setProgress(1);
             valueSetter.setVisibility(View.GONE);
         }
     }

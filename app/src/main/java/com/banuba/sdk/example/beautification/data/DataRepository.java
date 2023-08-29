@@ -11,6 +11,7 @@ import com.banuba.sdk.example.beautification.makeup.MakeupApi.ColoringApi;
 import com.banuba.sdk.example.beautification.makeup.MakeupApi.MorphApi;
 import com.banuba.sdk.example.beautification.makeup.MakeupApi.BeautyApi;
 import com.banuba.sdk.example.beautification.makeup.MakeupApi.ClearingApi;
+import com.banuba.sdk.example.beautification.makeup.MakeupApi.FilterApi;
 
 public final class DataRepository {
     public static final class Group {
@@ -25,33 +26,41 @@ public final class DataRepository {
 
     public static final class Section {
         public final String text;
+        public final String path;
         public final ColoringApi coloring;
         public final MorphApi morphing;
         public final BeautyApi beauty;
         public final ClearingApi clearing;
+        public final FilterApi filter;
 
         public Section(String text, ColoringApi coloring) {
-            this(text, coloring, null, null, null);
+            this(text, coloring, null, null, null, null, "");
         }
 
         public Section(String text, MorphApi morph) {
-            this(text, null, morph, null, null);
+            this(text, null, morph, null, null, null, "");
         }
 
         public Section(String text, BeautyApi beauty) {
-            this(text, null, null, beauty, null);
+            this(text, null, null, beauty, null, null, "");
         }
 
         public Section(String text, ClearingApi clearing) {
-            this(text, null, null, null, clearing);
+            this(text, null, null, null, clearing, null, "");
         }
 
-        private Section(String text, ColoringApi coloring, MorphApi morph, BeautyApi beauty, ClearingApi clearing) {
+        public Section(String text, FilterApi filter, String path) {
+            this(text, null, null, null, null, filter, path);
+        }
+
+        private Section(String text, ColoringApi coloring, MorphApi morph, BeautyApi beauty, ClearingApi clearing, FilterApi filter, String path) {
             this.text = text;
             this.coloring = coloring;
             this.morphing = morph;
             this.beauty = beauty;
             this.clearing = clearing;
+            this.filter = filter;
+            this.path = path;
         }
     }
 
@@ -169,6 +178,15 @@ public final class DataRepository {
                     new Section("Chin narrowing", MorphApi.FACE_CHIN_NARROWING),
                     new Section("Sunken cheeks", MorphApi.FACE_SUNKEN_CHEEKS),
                     new Section("Cheeks jaw narrowing", MorphApi.FACE_CHEEKS_JAW_NARROWING)
+                )
+            ),
+            new Group("Filter",
+                Arrays.asList(
+                    new Section("Nothing", FilterApi.SET, ""),
+                    new Section("Sunny", FilterApi.SET, "/luts/LUT_sunny.png"),
+                    new Section("80 percent", FilterApi.SET, "/luts/lut_80_percent.png"),
+                    new Section("Bubblegum", FilterApi.SET, "/luts/LUT_bubblegum.png"),
+                    new Section("August", FilterApi.SET, "/luts/LUT_august.png")
                 )
             ),
             new Group("Reset all",
